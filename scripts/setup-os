@@ -1,0 +1,150 @@
+#!/bin/bash
+
+set -euo pipefail
+
+# Keep a log of the setup process
+
+LOGFILE="$HOME/setup.log"
+exec 3>&1
+exec > >(tee -a "$LOGFILE") 2>&1
+
+# Determine if we have sudo or are root
+
+if [ "$(id -u)" -eq 0 ]; then
+  SUDO=""
+elif command -v sudo >/dev/null 2>&1; then
+  SUDO="sudo"
+else
+  echo "ERROR: need root privileges but sudo is not installed (and you are not root)." >&2
+  exit 1
+fi
+
+# Define helper function for output
+
+if [ -t 3 ]; then
+  RED='\033[0;31m'
+  GREEN='\033[0;32m'
+  YELLOW='\033[0;33m'
+  BLUE='\033[0;34m'
+  BOLD='\033[1m'
+  RESET='\033[0m'
+else
+  RED=''; GREEN=''; YELLOW=''; BLUE=''; BOLD=''; RESET=''
+fi
+
+log()      { printf "\n%b\n\n" "${BLUE}${BOLD}==> $*${RESET}"; }
+ok()       { printf "\n%b\n\n" "${GREEN}✔ $*${RESET}"; }
+warn()     { printf "\n%b\n\n" "${YELLOW}⚠ $*${RESET}"; }
+die()      { printf "\n%b\n\n" "${RED}✖ $*${RESET}" >&2; exit 1; }
+
+# Fix timezone to avoid tzdata prompts
+
+export DEBIAN_FRONTEND=noninteractive
+export TZ=Europe/Rome
+
+$SUDO ln -snf "/usr/share/zoneinfo/$TZ" /etc/localtime
+echo "$TZ" | $SUDO tee /etc/timezone > /dev/null
+
+# Update and install system software
+
+log "Updating package lists and installing prerequisites..."
+$SUDO apt-get update -y
+$SUDO apt-get install -y --no-install-recommends tzdata
+$SUDO dpkg-reconfigure -f noninteractive tzdata
+$SUDO apt-get upgrade -y
+$SUDO apt-get install -y git ca-certificates curl gnupg python3-packaging
+
+ver_ge() {  # ver_ge A B  -> true if A >= B (semver-ish, numeric)
+  python3 - <<'EOF' "$1" "$2"
+import sys
+from packaging.version import Version
+a,b = sys.argv[1], sys.argv[2]
+print(int(Version(a) >= Version(b)))
+EOF
+}
+
+## Update or install additional software
+
+NODE_MAJOR=24
+DOCKER_MAJOR=29
+ARCH=$(dpkg --print-architecture)
+. /etc/os-release
+
+$SUDO install -d -m 0755 /etc/apt/keyrings
+curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key \
+  | $SUDO gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg \
+  | $SUDO gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+# curl -fsSL https://packages.microsoft.com/keys/microsoft.asc \
+#   | $SUDO gpg --dearmor -o /etc/apt/keyrings/microsoft.gpg
+$SUDO chmod a+r /etc/apt/keyrings/*.gpg
+
+echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_${NODE_MAJOR}.x nodistro main" \
+  | $SUDO tee /etc/apt/sources.list.d/nodesource.list > /dev/null
+echo "deb [arch=$ARCH signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu $VERSION_CODENAME stable" \
+  | $SUDO tee /etc/apt/sources.list.d/docker.list > /dev/null
+# echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/microsoft.gpg] https://packages.microsoft.com/repos/code stable main" \
+#   | $SUDO tee /etc/apt/sources.list.d/vscode.list > /dev/null
+$SUDO chmod a+r /etc/apt/sources.list.d/*.list
+
+$SUDO apt-get update -y
+
+## NodeJS
+
+have_node_ver() {
+  command -v node >/dev/null 2>&1 || return 1
+  node -p "process.versions.node" 2>/dev/null | tr -d '\r'
+}
+NODE_VER="$(have_node_ver || true)"
+
+
+if [ -n "$NODE_VER" ] && [ "$(ver_ge "$NODE_VER" "${NODE_MAJOR}.0.0")" = "1" ]; then
+  log "Node already installed: $NODE_VER (>= ${NODE_MAJOR}.0.0)"
+else
+  log "Installing/upgrading Node (need >= ${NODE_MAJOR}.0.0; have ${NODE_VER:-none})"
+
+  $SUDO apt-get remove -y nodejs npm || true
+  $SUDO apt-get install -y nodejs
+
+fi
+
+## Docker
+
+docker_server_ver() {
+  command -v docker >/dev/null 2>&1 || return 1
+  docker version --format '{{.Server.Version}}' 2>/dev/null | tr -d '\r'
+}
+DOCKER_VER="$(docker_server_ver || true)"
+
+if [ -n "$DOCKER_VER" ] && [ "$(ver_ge "$DOCKER_VER" "${DOCKER_MAJOR}.0.0")" = "1" ]; then
+  log "Docker already installed: $DOCKER_VER (>= ${DOCKER_MAJOR}.0.0)"
+else
+  log "Installing/upgrading Docker (need >= ${DOCKER_MAJOR}.0.0; have ${DOCKER_VER:-none})"
+
+  $SUDO apt remove $(dpkg --get-selections docker.io docker-compose docker-compose-v2 docker-doc podman-docker containerd runc | cut -f1)
+  $SUDO apt-get install -y \
+    docker-ce \
+    docker-ce-cli \
+    containerd.io \
+    docker-buildx-plugin \
+    docker-compose-plugin
+
+  #$SUDO systemctl enable docker
+  #$SUDO systemctl start docker
+
+fi
+
+## Code
+
+if command -v code >/dev/null 2>&1; then
+  log "VS Code already installed: $(code --version | head -n1)"
+else
+  log "Installing VS Code CLI"
+  #$SUDO apt-get install -y code
+  curl -#L "https://code.visualstudio.com/sha/download?os=cli-alpine-x64" | $SUDO tar zxf - -C /usr/local/bin
+fi
+
+## Devcontainers CLI
+
+log "Installing devcontainer CLI"
+npm install -g @devcontainers/cli

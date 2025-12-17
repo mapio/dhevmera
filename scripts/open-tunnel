@@ -1,0 +1,5 @@
+#!/bin/bash
+
+code tunnel service install --accept-server-license-terms
+systemctl --user enable --now code-tunnel
+sudo loginctl enable-linger "$USER"
