@@ -2,5 +2,14 @@
 
 set -euo pipefail
 
-devcontainer up --mount type=bind,source=/home/santini/dhevmera,target=/dhevmera --workspace-folder "$1"
-#  devcontainer exec --workspace-folder lecture-drafts /dhevmera/code tunnel
+REPO="$1"
+if [ -z "$REPO" ]; then
+  echo "Usage: $0 <path-to-repo>"
+  exit 1
+fi
+
+devcontainer up \
+  --dotfiles-repository https://github.com/mapio/dhevmera \
+  --dotfiles-install-command ./scripts/setup \
+  --mount type=bind,source=/home/santini/dhevmera,target=/dhevmera \
+  --workspace-folder "$REPO"

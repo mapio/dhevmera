@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+REPO="$1"
+if [ -z "$REPO" ]; then
+  echo "Usage: $0 <path-to-repo>"
+  exit 1
+fi
+
+devcontainer exec --workspace-folder "$REPO" /dhevmera/code tunnel --name dhevmera --accept-server-license-terms
