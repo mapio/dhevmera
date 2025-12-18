@@ -1,0 +1,173 @@
+{
+  "[python]": {
+    "diffEditor.ignoreTrimWhitespace": false,
+    "editor.formatOnType": true
+  },
+  "[vue]": {
+    "editor.defaultFormatter": "Vue.volar"
+  },
+  "accessibility.voice.speechLanguage": "it-IT",
+  "cSpell.language": "en,en-US,it-IT,it,en-GB",
+  "csv-edit.readOption_hasHeader": "true",
+  "diffEditor.ignoreTrimWhitespace": false, 
+  "diffEditor.maxComputationTime": 0,
+  "editor.detectIndentation": false,
+  "editor.fontFamily": "Fira code",
+  "editor.fontLigatures": true,
+  "editor.fontSize": 16,
+  "editor.guides.bracketPairs": true,
+  "editor.inlayHints.enabled": "offUnlessPressed",
+  "editor.inlineSuggest.enabled": true,
+  "editor.minimap.enabled": false,
+  "editor.renderWhitespace": "boundary",
+  "editor.tabSize": 2,
+  "editor.unicodeHighlight.invisibleCharacters": false,
+  "files.exclude": {
+    "**/.classpath": true,
+    "**/.factorypath": true,
+    "**/.project": true,
+    "**/.settings": true,
+    "**/__pycache__": true
+  },
+  "git.autofetch": true,
+  "git.blame.statusBarItem.enabled": true,
+  "git.confirmSync": false,
+  "git.ignoreLegacyWarning": true,
+  "git.ignoreMissingGitWarning": true,
+  "git.untrackedChanges": "separate",
+  "github.copilot.enable": {
+    "*": true,
+    "quarto": false,
+    "markdown": true,
+    "plaintext": true,
+    "scminput": false,
+    "java": true
+  },
+  "jupyter.askForKernelRestart": false,
+  "jupyter.logging.level": "error",
+  "jupyter.widgetScriptSources": [
+    "jsdelivr.com",
+    "unpkg.com"
+  ],
+  "latex-input.selector": [
+    {
+      "scheme": "vscode-notebook-cell"
+    },
+    {
+      "scheme": "file"
+    }
+  ],
+  "markdown.preview.fontSize": 16,
+  "notebook.cellToolbarLocation": {
+    "default": "right",
+    "jupyter-notebook": "left"
+  },
+  "notebook.lineNumbers": "off",
+  "notebook.output.fontFamily": "Fira Code",
+  "redhat.telemetry.enabled": true,
+  "security.promptForLocalFileProtocolHandling": false,
+  "security.workspace.trust.enabled": false,
+  "security.workspace.trust.untrustedFiles": "open",
+  "terminal.integrated.defaultProfile.linux": "bash (login)",
+  "terminal.integrated.fontSize": 16,
+  "terminal.integrated.inheritEnv": false,
+  "terminal.integrated.profiles.linux": {
+    "bash (login)": {
+      "args": [
+        "--login"
+      ],
+      "icon": "terminal-bash",
+      "path": "bash"
+    }
+  },
+  "terminal.integrated.sendKeybindingsToShell": true,
+  "todo-tree.general.tags": [
+    "BUG",
+    "HACK",
+    "FIXME",
+    "TODO",
+    "XXX",
+    "[ ]",
+    "[x]",
+    "DOCENTE"
+  ],
+  "window.restoreWindows": "none",
+  "window.zoomLevel": 1,
+  "workbench.colorCustomizations": {},
+  "workbench.colorTheme": "Default Light Modern",
+  "workbench.startupEditor": "none",
+  "workbench.tree.indent": 24,
+  "mdb.confirmRunAll": false,
+  "terminal.integrated.enableMultiLinePasteWarning": "never",
+  "print.folder.fileNames": true,
+  "print.folder.include": [],
+  "print.folder.exclude": [
+    "{bin,obj,out}",
+    "node_modules",
+    "data",
+    "**/*.{bin,exe,dll,hex,pdb,pdf,pfx,png,jpg,gif,bmp,suo,design}"
+  ],
+  "print.folder.maxLines": 1200,
+  "print.folder.maxFiles": 30,
+  "print.folder.includeFileList": false,
+  "editor.inlineSuggest.suppressSuggestions": true,
+  "jupyter.interactiveWindow.creationMode": "perFile",
+  "github.copilot.chat.agent.thinkingTool": true,
+  "makefile.configureOnOpen": true,
+  "[javascript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "github.copilot.nextEditSuggestions.enabled": true,
+  "mdb.mcp.server": "prompt",
+  "java.configuration.detectJdksAtStart": false,
+  "java.inlayHints.parameterNames.enabled": "none",
+  "java.configuration.updateBuildConfiguration": "automatic",
+    "java.completion.favoriteStaticMembers": [
+    "org.junit.Assert.*",
+    "org.junit.Assume.*",
+    "org.junit.jupiter.api.Assertions.*",
+    "org.junit.jupiter.api.Assumptions.*",
+    "org.junit.jupiter.api.DynamicContainer.*",
+    "org.junit.jupiter.api.DynamicTest.*",
+    "org.hamcrest.MatcherAssert.*",
+    "org.hamcrest.Matchers.*"
+  ],
+  "cSpell.ignoreWords": [
+    "buildhome",
+    "cthing",
+    "diffplug",
+    "doclet",
+    "docletpath",
+    "executescript",
+    "getenv",
+    "ijava",
+    "jacoco",
+    "jubbiot",
+    "kernelspec",
+    "locc",
+    "println",
+    "puppycrawl",
+    "pystr",
+    "sdkman",
+    "sphinxcontrib",
+    "talsmasoftware",
+    "umldoclet",
+    "undict",
+    "werror",
+    "xdoclint",
+    "xlint",
+    "dmmdc",
+    "dollarmath",
+    "pdfcrop",
+    "smartquotes"
+  ],
+  "chat.tools.terminal.autoApprove": {
+    "./gradlew": true,
+    "timeout": true
+  },
+  "cSpell.userWords": [
+    "subtyping"
+  ],
+  "python.defaultInterpreterPath": "/home/santini/.local/share/virtualenvs/named-qbt",
+  "chat.mcp.gallery.enabled": true,
+}

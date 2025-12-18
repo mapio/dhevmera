@@ -1,0 +1,137 @@
+if [[ $PS1 ]]; then
+
+  # safety aliases
+
+  alias rm='rm -i'
+  alias mv='mv -i'
+  alias cp='cp -i'
+  alias ln='ln -i'
+
+  # other aliases
+  
+  alias ..='cd ..'
+  alias rs='eval $(resize)'
+  alias mk=make
+  alias lmk='make -f "$LATEX_MAKEFILE"'
+  alias rmbak="find . -type f -and \( -name '*~' -or -name '#*' -or -name '.*~' -or -name '.#*' -or -name '._*' \) -ok rm -f {} \;"
+  alias df='df -h'
+  alias o=xdg-open
+  alias sudo-apt-phased='sudo apt -o="APT::Get::Always-Include-Phased-Updates=true"'
+  alias meet='nohup /opt/google/chrome/chrome --app=https://meet.google.com/ >/dev/null 2>&1 &'
+
+  if [ -x /usr/bin/dircolors ]; then
+    test -r ~/.dircolors && eval "$(dircolors -b ~/.dircolors)" || eval "$(dircolors -b)"
+    alias l='/bin/ls --color=auto -hl'
+    alias ll='/bin/ls --color=auto -hlZ'
+    alias ls='ls --color=auto'
+    alias grep='grep --color=auto'
+    alias fgrep='fgrep --color=auto'
+    alias egrep='egrep --color=auto'
+  fi
+
+  # docker
+  
+  if [[ $(type -t docker) == file ]]; then
+    alias d=docker
+    alias dr='docker run'
+    alias drit='docker run -it'
+    alias dps='docker ps'
+    alias drm='docker rm'
+    alias drma='[[ $(docker ps -qa | wc -l) -gt 0 ]] && docker rm $(docker ps -qa)'
+    alias drmafv='[[ $(docker ps -qa | wc -l) -gt 0 ]] && docker rm -vf $(docker ps -qa)'
+    alias drmv='[[ $(docker volume ls -qf dangling=true | wc -l) -gt 0 ]] && docker volume rm $(docker volume ls -qf dangling=true)'
+    alias drmi='[[ $(docker images -qaf dangling=true | wc -l) -gt 0 ]] && docker rmi $(docker images -qaf dangling=true)'
+
+    function dx() {
+      local img="$1"
+      shift
+      local cmd="$@"
+      if [[ -z "$cmd" ]]; then cmd="sh"; fi
+      docker exec -it "$img" "$cmd"
+    }
+  fi
+
+  # rgit
+
+  rgit() {
+    find . -name .git -type d -print | while read d; do
+      fp=$(realpath $d/..)
+      echo -e "\033[31m*** $(basename $fp)\033[0m"
+      (cd $fp; git --no-pager "$@")
+    done
+  }
+  export -f rgit
+
+  # jupyter
+
+  alias jn='jupyter notebook'
+
+  # HSTR
+
+  if [[ $(type -t hstr) == file ]]; then
+    shopt -s histappend              # append new history items to .bash_history
+    export HSTR_CONFIG=hicolor         # get more colors
+    export HISTCONTROL=ignorespace   # leading space hides commands from history
+    export HISTFILESIZE=10000        # increase history file size (default is 500)
+    export HISTSIZE=${HISTFILESIZE}  # increase history size (default is 500)
+    export PROMPT_COMMAND="history -a; history -n; ${PROMPT_COMMAND}" # mem/file sync
+    if [[ $- =~ .*i.* ]]; then bind '"\C-r": "\C-a hstr \C-j"'; fi
+  fi
+
+  # xclip
+  
+  if [[ $(type -t xclip) == file ]]; then
+    alias pbpaste='xclip -selection clipboard -rmlastnl -o'
+    alias pbcopy='xclip -selection clipboard -rmlastnl -i'
+  fi
+
+  # starship
+
+  if [ -f "/usr/local/bin/starship" ]; then
+    eval "$(/usr/local/bin/starship init bash)"
+    function _set_win_title() {
+      echo -ne "\033]0; ${USER}@${HOSTNAME} \007"
+    }
+    starship_precmd_user_func="_set_win_title"
+  fi
+
+  # direnv
+  
+  if [ -f "/usr/bin/direnv" ]; then
+    eval "$(/usr/bin/direnv hook bash)"
+  fi
+
+  # sdkman
+  
+  export SDKMAN_DIR="$HOME/.sdkman"
+  [[ -s "$HOME/.sdkman/bin/sdkman-init.sh" ]] && source "$HOME/.sdkman/bin/sdkman-init.sh"
+
+  # rust
+
+  [[ -s "$HOME/.cargo/env" ]] && source "$HOME/.cargo/env"
+
+  # hatch
+
+  alias hrb='hatch run bash'
+  alias hrc='hatch run code'
+  alias hrc.='hatch run code .'
+
+  # vscode
+
+  vc() {
+    local cwd_hex=$(pwd | tr -d '\n' | xxd -c 256 -p)
+    code --folder-uri="vscode-remote://dev-container+${cwd_hex}/workspaces/"
+  }
+
+  vs() {
+    local dst=$(echo $1 | tr : /)
+    code --folder-uri="vscode-remote://ssh-remote+$dst"
+  } 
+
+fi
+
+# nvm
+
+export NVM_DIR="$HOME/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
+[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion

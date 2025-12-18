@@ -1,0 +1,64 @@
+[filter "gitgpg"]
+  clean = gpg  --batch --yes --encrypt --recipient backup
+  smudge = gpg --decrypt --quiet
+[filter "lfs"]
+  required = true
+  clean = git-lfs clean -- %f
+  smudge = git-lfs smudge -- %f
+  process = git-lfs filter-process
+[user]
+  name = Massimo Santini
+  email = santini@di.unimi.it
+  signingkey = E9C0BE99F1F5DBE7
+[core]
+  excludesfile = /home/santini/.gitignore_global
+  attributesfile = /home/santini/.gitattributes_global
+  quotepath = false
+  commitGraph = true
+  editor = code --wait
+[alias]
+  aci = commit -a
+  branches = branch -a
+  ci = commit
+  df = diff --word-diff
+  dfp = show --word-diff
+  hist = log --graph --date-order --date=short --name-status --pretty=format:'%Cred%h%Creset %C(bold blue)<%an> [%G?]%Creset%C(yellow)%d%Creset %Cgreen(%cr)%Creset%w(80,1,8)%s%n'
+  rr = !git rerere status && echo && git rerere diff
+  st = status
+  stashes = stash list
+  tags = tag
+  unstage = reset -q HEAD --
+  head = rev-parse HEAD
+[push]
+  default = simple
+  followTags = true
+[pull]
+  rebase = true
+  ff = only
+[diff]
+  tool = vscode
+[difftool]
+  prompt = false
+[difftool "vscode"]
+  cmd = code --wait --diff $LOCAL $REMOTE
+[merge]
+  tool = vscode
+[mergetool "vscode"]
+  cmd = code --wait --merge $REMOTE $LOCAL $BASE $MERGED
+  trustExitCode = true
+[gpg]
+  program = gpg
+[commit]
+  gpgsign = true
+[tag]
+  gpgSign = true
+[receive]
+  advertisePushOptions = true
+[gc]
+  writeCommitGraph = true
+[init]
+  defaultBranch = master
+[rerere]
+  enabled = true
+  autoUpdate = true
+  gc = true

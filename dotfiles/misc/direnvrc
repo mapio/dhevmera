@@ -1,0 +1,46 @@
+layout_python-dir-venv() {
+    unset PYTHONHOME
+    local venv_prompt=$(basename $(realpath .))
+    local dir_hash="dir-${venv_prompt}-$(echo $(realpath .) | md5sum | cut -d ' ' -f1)"
+    if [[ -n $VIRTUAL_ENV ]]; then
+        VIRTUAL_ENV=$(realpath "${VIRTUAL_ENV}")
+    else
+        VIRTUAL_ENV="${HOME}/.local/share/virtualenvs/${dir_hash}"
+    fi
+    export VIRTUAL_ENV
+    if [[ ! -d $VIRTUAL_ENV ]]; then
+        log_status "no venv found; creating $VIRTUAL_ENV"
+        python3.12 -m venv "$VIRTUAL_ENV" --prompt "$venv_prompt"
+        "$VIRTUAL_ENV/bin/pip" install --upgrade pip
+        if [[ -r requirements.txt ]]; then
+            log_status "found requirements.txt; installing packages"
+            "$VIRTUAL_ENV/bin/pip" install --upgrade setuptools
+            "$VIRTUAL_ENV/bin/pip" install -r requirements.txt
+        fi
+    fi
+    PATH_add "$VIRTUAL_ENV/bin"
+}
+
+layout_python-fixed-venv() {
+    unset PYTHONHOME
+    if [[ -n "$1" ]]; then
+      local venv_prompt="$1"
+      VIRTUAL_ENV="${HOME}/.local/share/virtualenvs/named-$1"
+    else
+      local venv_prompt=$(basename $(realpath .))
+      local dir_hash="named-${venv_prompt}-$(echo $(realpath .) | md5sum | cut -d ' ' -f1)"
+      VIRTUAL_ENV="${HOME}/.local/share/virtualenvs/${dir_hash}"
+    fi
+    export VIRTUAL_ENV
+    if [[ ! -d $VIRTUAL_ENV ]]; then
+        log_status "no venv found; creating $VIRTUAL_ENV"
+        python3.12 -m venv "$VIRTUAL_ENV" --prompt "$venv_prompt"
+        "$VIRTUAL_ENV/bin/pip" install --upgrade pip
+        if [[ -r requirements.txt ]]; then
+            log_status "found requirements.txt; installing packages"
+            "$VIRTUAL_ENV/bin/pip" install --upgrade setuptools
+            "$VIRTUAL_ENV/bin/pip" install --upgrade -r requirements.txt
+        fi
+    fi
+    PATH_add "$VIRTUAL_ENV/bin"
+}

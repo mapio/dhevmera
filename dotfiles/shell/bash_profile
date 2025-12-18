@@ -1,0 +1,95 @@
+# misc
+# shopt -s nullglob # disaster ensued with bash autocompletion if this is active
+shopt -o -s pipefail
+umask u+rwx,go=
+declare -a path man info # used to build binaries, manuals and infos paths
+export PAGER=less
+export LESSCHARSET=utf-8
+export LESS='-SR'
+export IGNOREEOF=10000
+
+# locale
+
+export LANG=en_US.UTF-8
+export LC_ALL=$LANG
+eval $(locale)
+
+# local stuff
+
+if [ ! -r ~/.nolocal ]; then
+  path+=(/usr/local/sbin)
+  path+=(/usr/local/bin)
+  man+=(/usr/local/share/man)
+fi
+
+#export TEXINPUTS=.:~/Unix/dir/research/tex/INPUTS//:
+#export BIBINPUTS=.:~/Unix/dir/research/tex/INPUTS//:
+export LATEX_MAKEFILE=~/Documents/Activities/Research/Past/INPUTS/Makefile
+
+# python
+
+export PYTHONSTARTUP="${HOME}/.pythonrc"
+export PYTHONIOENCODING=utf8 # for stdout / stderr
+
+# my scripts
+
+path+=($HOME/Documents/Scripts)
+path+=($HOME/Documents/Activities/Programming/cli)
+path+=($HOME/.local/bin)
+path+=($HOME/.bun/bin)
+
+# path, man and info setup
+
+if [ ! -r .minipath ]; then
+  for p in "${path[@]}"; do
+    if [ -d "$p" ]; then
+      PATH="$p:$PATH"
+    else
+      echo "PATH:formation: discarding: $p" >&2
+    fi
+  done
+  MANPATH=/usr/share/man
+  for m in "${man[@]}"; do
+    if [ -d "$m" ]; then MANPATH="$m:$MANPATH"; fi
+  done
+  INFOPATH=/usr/share/info
+  for i in "${info[@]}"; do
+    if [ -d "$i" ]; then INFOPATH="$i:$INFOPATH"; fi
+  done
+fi
+unset man path info m p i
+export PATH MANPATH INFOPATH
+
+# editor
+
+if [[ $(type -t code) == file ]]; then
+  EDITOR='code -nw'
+elif [[ $(type -t vi) == file ]]; then
+  EDITOR=vi
+fi
+export EDITOR
+alias e="$EDITOR"
+
+# wexterm
+
+export WEZTERM_SHELL_SKIP_ALL=1
+
+# include .bashrc if it exists
+
+if [[ $PS1 ]] && [ -f ~/.bashrc ]; then
+  source ~/.bashrc
+fi
+
+# Docker
+
+export DOCKER_BUILDKIT=1
+export COMPOSE_BAKE=true
+
+# rust
+
+[[ -s "$HOME/.cargo/env" ]] && source "$HOME/.cargo/env"
+
+# secrets
+
+source $HOME/.bash_secrets
+

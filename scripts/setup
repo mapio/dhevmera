@@ -1,3 +1,108 @@
 #!/usr/bin/env bash
 
-echo SETUP DOTFILES
+set -euo pipefail
+
+# should dry run?
+
+RUN="${1:+echo}"
+
+# Keep a log of the setup process
+
+LOGFILE="$HOME/.setup-dotfiles.log"
+exec 3>&1
+exec > >(tee -a "$LOGFILE") 2>&1
+
+# Define helper function for output
+
+if [ -t 3 ]; then
+  RED='\033[0;31m'
+  GREEN='\033[0;32m'
+  YELLOW='\033[0;33m'
+  BLUE='\033[0;34m'
+  BOLD='\033[1m'
+  RESET='\033[0m'
+else
+  RED=''; GREEN=''; YELLOW=''; BLUE=''; BOLD=''; RESET=''
+fi
+
+log()      { printf "\n%b\n\n" "${BLUE}${BOLD}==> $*${RESET}"; }
+ok()       { printf "%b\n" "${GREEN}✔ $*${RESET}"; }
+warn()     { printf "%b\n" "${YELLOW}⚠ $*${RESET}"; }
+die()      { printf "%b\n" "${RED}✖ $*${RESET}" >&2; exit 1; }
+
+# Helper functions
+
+DOTFILES="$(cd "$(dirname "${BASH_SOURCE[0]}")/../dotfiles" && pwd)"
+SECRETS=/dev/shm/secrets
+
+_install() {
+  src="$1"
+  dst="$2"
+
+  if [ -z "$src" ] || [ -h "$src" ] || { [ ! -f "$src" ] && [ ! -d "$src" ]; } || [ ! -r "$src" ]; then
+    die "source '$src' must be specified and be a regular readable file or directory"
+  fi
+
+  if [ -z "$dst" ]; then
+    die "destination '$dst' must be specified"
+  fi
+
+  if [ -e "$dst" -a ! -h "$dst" ]; then
+    warn "destination '$dst' will be replaced"
+  fi
+
+  dstdir=$(dirname "$dst")
+  if [ ! -d "$dstdir" ]; then
+    warn "creating diretory '$dstdir'"
+    $RUN mkdir -p "$dstdir"
+  fi
+
+  $RUN rm -rf "$dst"
+  $RUN ln -s $(realpath $src) "$dst"
+  ok "installed: $dst"
+
+}
+
+if [ -d $SECRETS ]; then
+  log "Installing secrets from '$SECRETS'"
+  _install $SECRETS/ssh/id_rsa $HOME/.ssh/id_rsa
+  _install $SECRETS/config/bash_secrets $HOME/.bash_secrets
+  _install $SECRETS/config/rclone.conf $HOME/.config/rclone/rclone.conf
+  _install $SECRETS/config/pypirc $HOME/.pypirc
+  _install $SECRETS/gnupg/openpgp-revocs.d $HOME/.gnupg/openpgp-revocs.d
+  _install $SECRETS/gnupg/private-keys-v1.d $HOME/.gnupg/private-keys-v1.d
+  _install $SECRETS/gnupg/pubring.kbx $HOME/.gnupg/pubring.kbx
+  _install $SECRETS/gnupg/trustdb.gpg $HOME/.gnupg/trustdb.gpg
+else
+  warn "secrets directory '$SECRETS' not found, skipping secrets installation"
+fi
+
+log "Installing dotfiles from '$DOTFILES'"
+
+_install $DOTFILES/git/gitattributes_global $HOME/.gitattributes_global
+_install $DOTFILES/git/gitconfig $HOME/.gitconfig
+_install $DOTFILES/git/gitignore_global $HOME/.gitignore_global
+
+_install $DOTFILES/shell/bash_profile $HOME/.bash_profile
+_install $DOTFILES/shell/bashrc $HOME/.bashrc
+_install $DOTFILES/shell/inputrc $HOME/.inputrc
+
+_install $DOTFILES/gnupg/gpg-agent.conf $HOME/.gnupg/gpg-agent.conf
+_install $DOTFILES/gnupg/gpg.conf $HOME/.gnupg/gpg.conf
+
+_install $DOTFILES/ssh/config $HOME/.ssh/config
+_install $DOTFILES/ssh/id_rsa.pub $HOME/.ssh/id_rsa.pub
+
+_install $DOTFILES/misc/direnvrc $HOME/.config/direnv/direnvrc
+_install $DOTFILES/misc/tmux.conf $HOME/.tmux.conf
+_install $DOTFILES/misc/starship.toml $HOME/.config/starship.toml
+_install $DOTFILES/misc/hatch.toml $HOME/.config/hatch/config.toml
+
+_install $DOTFILES/python/pythonrc $HOME/.pythonrc
+
+_install $DOTFILES/vscode/argv.json $HOME/.vscode/argv.json
+_install $DOTFILES/vscode/settings.json $HOME/.config/Code/User/settings.json
+
+_install $DOTFILES/misc/wezterm.lua $HOME/.config/wezterm/wezterm.lua
+
+touch "$HOME/.setup-dotfiles.complete"

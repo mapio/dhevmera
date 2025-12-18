@@ -1,0 +1,164 @@
+#PubkeyAcceptedKeyTypes ssh-dss
+
+ForwardAgent yes
+ForwardX11 no
+ForwardX11Trusted yes
+
+# A really bad trick
+
+NoHostAuthenticationForLocalhost yes
+StrictHostKeyChecking no
+UserKnownHostsFile /dev/null
+LogLevel ERROR
+
+# mie
+
+Host santini
+  HostName santini.docenti.di.unimi.it
+
+Host nano
+  HostName nanobook.local
+
+Host fnano
+  HostName nanobook.local
+  User fede
+
+# scythe
+
+Host reaper-admin
+  HostName reaper.srv.di.unimi.it
+  User scythe-dev
+
+Host reaper-tester
+  User scythe-dev
+  HostName reaper.srv.di.unimi.it
+  IdentityFile ~/.ssh/id_rsa_reaper-tester
+  IdentitiesOnly yes
+
+Host reaper-prog2ese
+  User scythe-dev
+  HostName reaper.srv.di.unimi.it
+  IdentityFile ~/.ssh/id_rsa_reaper-prog2ese
+  IdentitiesOnly yes
+
+# salamacchine
+
+Host mercurio
+  HostName mercurio.srv.di.unimi.it
+
+# law
+
+Host plexus
+  HostName plexus.law.di.unimi.it
+
+Host nexus
+  HostName nexus.law.di.unimi.it
+
+Host sexus
+  HostName sexus.law.di.unimi.it
+
+Host tesla
+  HostName tesla.law.di.unimi.it
+
+Host s0
+  HostName s0.law.di.unimi.it
+
+Host s1
+  HostName s1.law.di.unimi.it
+
+Host s2
+  HostName s2.law.di.unimi.it
+
+Host s3
+  HostName s3.law.di.unimi.it
+
+# Naicons
+
+Host naicons-nas
+  HostName 192.168.33.22
+  User MassimoSantini
+  Port 10022
+
+Host naicons-h
+  HostName 192.168.33.32
+  User idrogeno
+
+Host naicons-e
+  HostName 192.168.33.31
+  User elio
+
+Host snaicons-h
+  HostName 192.168.33.32
+  User soupy
+
+Host snaicons-e
+  HostName 192.168.33.31
+  User soupy
+
+Host dnaicons-h
+  HostName 192.168.33.32
+  User devel
+
+Host dnaicons-e
+  HostName 192.168.33.31
+  User devel
+
+Host naicons-thermo
+  HostName 192.168.33.147
+  User COMPUTER
+  #Password thermo
+
+Host naicons-indaco
+  User matteo.simone.est
+  HostName login.indaco.unimi.it
+  IdentityFile ~/.ssh/id_naicons-indaco
+  #Password 145811vale
+  ControlMaster auto
+  ControlPath ~/.ssh/sockets/%r@%h-%p
+  ControlPersist 10m
+
+# remarkable2
+
+Host rem
+  User root
+  HostName 10.11.99.1
+
+# qbt
+
+Host qbt
+  HostName qbt.law.di.unimi.it
+
+Host pico
+  HostName pico.qbt.cluster
+
+Host pico2
+  HostName pico2.qbt.cluster
+
+Host minersp
+  User massimo
+  HostName rhyhorn.docenti.di.unimi.it
+
+Host minersg
+  User massimo
+  HostName cudone.ricerca.di.unimi.it
+
+Host qbtsh0
+  User pi
+  #HostName 159.149.130.215
+  HostName 159.149.130.198
+  #Password QBTminerSH
+  SetEnv LC_ALL=C
+
+Host qbtsh1
+  User pi
+  #HostName 159.149.130.212
+  HostName 159.149.130.199
+  #Password QBTminerSH
+  SetEnv LC_ALL=C
+  
+Host qbts9
+  User root
+  #Password QBTminerS9
+  HostName 159.149.130.195
+  #KexAlgorithms +diffie-hellman-group1-sha1
+  HostKeyAlgorithms +ssh-rsa
