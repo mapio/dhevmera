@@ -69,8 +69,9 @@ if [ -d $SECRETS ]; then
   log "Installing secrets from '$SECRETS'"
   _install $SECRETS/ssh/id_rsa $HOME/.ssh/id_rsa
   _install $SECRETS/config/bash_secrets $HOME/.bash_secrets
-  _install $SECRETS/config/rclone.conf $HOME/.config/rclone/rclone.conf
+  _install $SECRETS/config/hcloud-cli.toml $HOME/.config/hcloud/cli.toml
   _install $SECRETS/config/pypirc $HOME/.pypirc
+  _install $SECRETS/config/rclone.conf $HOME/.config/rclone/rclone.conf
   _install $SECRETS/gnupg/openpgp-revocs.d $HOME/.gnupg/openpgp-revocs.d
   _install $SECRETS/gnupg/private-keys-v1.d $HOME/.gnupg/private-keys-v1.d
   _install $SECRETS/gnupg/pubring.kbx $HOME/.gnupg/pubring.kbx

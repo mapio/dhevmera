@@ -38,11 +38,19 @@ ok "Server '$SERVER' created."
 
 ip="$(hcloud server ip "$SERVER")"
 
-log "Waiting for server '$SERVER' at $ip to become reachable on ssh port..."
+log "Waiting for server '$SERVER' at $ip to become reachable on ssh port and have the dhevmera directory..."
 
 for delay in 1 1 2 3 5 8 13 21; do
   if nc -z -w2 "$ip" 22; then
     ok "Server '$SERVER' is reachable at $ip."
+    break
+  fi
+  sleep "$delay"
+done
+
+for delay in 1 1 2 3 5 8 13 21; do
+  if ssh "$ip" test -d dhevmera; then
+    ok "Server '$SERVER' has the dhevmera directory."
     break
   fi
   sleep "$delay"
