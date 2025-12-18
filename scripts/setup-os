@@ -4,7 +4,7 @@ set -euo pipefail
 
 # Keep a log of the setup process
 
-LOGFILE="$HOME/setup.log"
+LOGFILE="$HOME/.setup-os.log"
 exec 3>&1
 exec > >(tee -a "$LOGFILE") 2>&1
 
@@ -129,8 +129,8 @@ else
     docker-buildx-plugin \
     docker-compose-plugin
 
-  #$SUDO systemctl enable docker
-  #$SUDO systemctl start docker
+  $SUDO systemctl enable docker
+  $SUDO systemctl start docker
 
 fi
 
@@ -140,11 +140,15 @@ if command -v code >/dev/null 2>&1; then
   log "VS Code already installed: $(code --version | head -n1)"
 else
   log "Installing VS Code CLI"
-  #$SUDO apt-get install -y code
   curl -#L "https://code.visualstudio.com/sha/download?os=cli-alpine-x64" | $SUDO tar zxf - -C /usr/local/bin
 fi
 
 ## Devcontainers CLI
 
 log "Installing devcontainer CLI"
-npm install -g @devcontainers/cli
+$SUDO npm install -g @devcontainers/cli
+
+# done
+
+ok "OS setup completed successfully!"
+touch "$HOME/.setup-os.complete"

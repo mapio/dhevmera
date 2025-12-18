@@ -16,11 +16,9 @@ users:
     ssh_authorized_keys:
       - "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQCUQxd0XZRfcpuaGq86okEwnq09idC2VJQDWuf6aK52BkX7JU351UqTA28aVv71Y4FfCcGBZI2TVmHo7aWtwYC7jpwsflKt34zhqUx/DyDyBSQRKLnD3eQE/lFTgUShBBCI63JxtFFwKymnLCzWf2EsmJh+p1iaGtUYYNTLVtIcqVNEMW+IGf0bIYmdx2bEK+/5OXmj4pfI85rtMCFFJMFuL5jBmwuD8qPtpOzZU1+vA6Gg68+oOBv2rblUT9CplHkHLtlrqtsxL3YXrjOw/QVkqC6Uj786BMsJDv7bO46Gyr1KGd7mH6Ycj6lR/0ibYEeY45uv++Nlt+JC5Awu+ZD1U0jJKL4bsB2+gDbMsoAl7IdkhmARdAJM24j1hl+NB6c9Qe8neb24/TkVx0kdkE5blpga4/xadWIFy6p2aH2kruj8A+kMTgKR8FpojHkHOFlGFa/F6Y82DbjDERgaCJM93mGAxvS9RrCe0jQokSey+U9f6H2TDxcpMcwJBDScIbaroNBixmJh/nYio/WkwjXZqOLqm9QNuzJ7jvXybO0p+x4KtKMk4EGDgmqae3mjuF0nW1KLnn2AwBkIpkfd4czSP1UzCIxU+iwYO0k+dDUQtQxdIcBRq9v3iZNlu05y5b4JHIPnUg1pu9joweDPEZJ0Il/pkjAWo5JHmIwu2tHlyw== santini@di.unimi.it 2015"
 
-# Optional hardening (recommended)
 disable_root: true
 ssh_pwauth: false
 
-# Where to clone + what to run
 write_files:
   - path: /usr/local/bin/cloud-bootstrap
     permissions: "0755"
@@ -35,15 +33,13 @@ write_files:
       DEST="${HOME_DIR}/dhevmera"
 
       if [[ ! -d "${DEST}/.git" ]]; then
-        sudo -u "${USER}" -H git clone "${REPO_URL}" "${DEST}"
+       git clone "${REPO_URL}" "${DEST}"
       else
-        sudo -u "${USER}" -H git -C "${DEST}" pull --ff-only
+       git -C "${DEST}" pull --ff-only
       fi
 
-      sudo -u "${USER}" -H bash -lc "cd '${DEST}' && ./scripts/setup-cloud"
+      cd "${DEST}" && ./scripts/setup-cloud
+      touch "${HOME_DIR}/.cloud-bootstrap-complete"
 
 runcmd:
-  - [bash, -lc, "/usr/local/bin/cloud-bootstrap >> /var/log/cloud-bootstrap.log 2>&1"]
-
-final_message: |
-  Cloud-init finished. Repo bootstrap log: /var/log/cloud-bootstrap.log
+  - "su - santini -lc /usr/local/bin/cloud-bootstrap >> /var/log/cloud-bootstrap.log 2>&1"
