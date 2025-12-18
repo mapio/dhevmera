@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+devcontainer up --mount type=bind,source=/home/santini/dhevmera,target=/dhevmera --workspace-folder "$1"
+#  devcontainer exec --workspace-folder lecture-drafts /dhevmera/code tunnel
