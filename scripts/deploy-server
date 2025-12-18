@@ -1,7 +1,59 @@
 #!/usr/bin/env bash
 
+set -euo pipefail
+
+# Define helper function for output
+
+if [ -t 1 ]; then
+  RED='\033[0;31m'
+  GREEN='\033[0;32m'
+  YELLOW='\033[0;33m'
+  BLUE='\033[0;34m'
+  BOLD='\033[1m'
+  RESET='\033[0m'
+else
+  RED=''; GREEN=''; YELLOW=''; BLUE=''; BOLD=''; RESET=''
+fi
+
+log()      { printf "\n%b\n\n" "${BLUE}${BOLD}==> $*${RESET}"; }
+ok()       { printf "%b\n" "${GREEN}✔ $*${RESET}"; }
+warn()     { printf "%b\n" "${YELLOW}⚠ $*${RESET}"; }
+die()      { printf "%b\n" "${RED}✖ $*${RESET}" >&2; exit 1; }
+
+## Create server
+
+SERVER="dhevmera"
+
+log "Creating server '$SERVER'..."
+
 hcloud server create \
-  --name dhevmera \
+  --name "$SERVER" \
   --type cx33 \
   --image ubuntu-24.04 \
-  --user-data-from-file ./cloud/cloud-init.yaml 
+  --user-data-from-file ./cloud/cloud-init.yaml
+
+ok "Server '$SERVER' created."
+
+## Wait for server to be reachable
+
+ip="$(hcloud server ip "$SERVER")"
+
+log "Waiting for server '$SERVER' at $ip to become reachable on ssh port..."
+
+for delay in 1 1 2 3 5 8 13 21; do
+  if nc -z -w2 "$ip" 22; then
+    ok "ssh port is open"
+    break
+  fi
+  sleep "$delay"
+done
+
+ok "Server '$SERVER' is reachable at $ip."
+
+## Deploy secrets
+
+log "Deploying secrets script to server..."
+
+scp unpack-secrets.sh "$ip":/dev/shm/
+
+ok "Secrets script deployed."
