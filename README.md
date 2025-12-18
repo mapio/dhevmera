@@ -1,2 +1,3 @@
-# dhevmera
-Ephemeral development environment setup scripts
+# Δημέρα
+
+Ephemeral development environment setup scripts.
