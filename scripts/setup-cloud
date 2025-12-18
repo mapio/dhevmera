@@ -1,3 +1,35 @@
 #!/usr/bin/env bash
 
-echo SETUP CLOUD
+set -euo pipefail
+
+# Keep a log of the setup process
+
+LOGFILE="$HOME/.setup-cloud.log"
+exec 3>&1
+exec > >(tee -a "$LOGFILE") 2>&1
+
+# Define helper function for output
+
+if [ -t 3 ]; then
+  RED='\033[0;31m'
+  GREEN='\033[0;32m'
+  YELLOW='\033[0;33m'
+  BLUE='\033[0;34m'
+  BOLD='\033[1m'
+  RESET='\033[0m'
+else
+  RED=''; GREEN=''; YELLOW=''; BLUE=''; BOLD=''; RESET=''
+fi
+
+log()      { printf "\n%b\n\n" "${BLUE}${BOLD}==> $*${RESET}"; }
+ok()       { printf "%b\n" "${GREEN}✔ $*${RESET}"; }
+warn()     { printf "%b\n" "${YELLOW}⚠ $*${RESET}"; }
+die()      { printf "%b\n" "${RED}✖ $*${RESET}" >&2; exit 1; }
+
+## Wait for secrets to be unpacked
+
+log "Waiting for secrets to be unpacked..."
+while [ ! -f /dev/shm/unpack-secrets.sh ]; do
+  sleep 1
+done
+/dev/shm/unpack-secrets.sh
