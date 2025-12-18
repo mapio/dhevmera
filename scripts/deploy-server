@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+
+hcloud server create \
+  --name dhevmera \
+  --type cx33 \
+  --image ubuntu-24.04 \
+  --user-data-from-file ./cloud/cloud-init.yaml 
