@@ -40,7 +40,7 @@ write_files:
 
       cd "${DEST}" 
       ./scripts/setup-os
-      while [ ! -f /dev/shm/secrets ]; do sleep 1 done
+      while [ ! -d /dev/shm/secrets ]; do sleep 1 done
       ./scripts/setup
 
       touch "${HOME_DIR}/.cloud-bootstrap-complete"
