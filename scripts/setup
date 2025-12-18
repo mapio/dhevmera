@@ -74,7 +74,7 @@ if [ -d $SECRETS ]; then
   _install $SECRETS/gnupg/pubring.kbx $HOME/.gnupg/pubring.kbx
   _install $SECRETS/gnupg/trustdb.gpg $HOME/.gnupg/trustdb.gpg
 else
-  warn "secrets directory '$SECRETS' not found, skipping secrets installation"
+  warn "Secrets directory '$SECRETS' not found, skipping secrets installation"
 fi
 
 log "Installing dotfiles from '$DOTFILES'"

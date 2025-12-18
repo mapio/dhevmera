@@ -55,3 +55,8 @@ log "Deploying secrets script to server..."
 scp unpack-secrets.sh "$ip":/dev/shm/
 
 ok "Secrets script deployed."
+
+## Unpack secrets on server
+
+log "Unpacking secrets on server..."
+ssh -t "$ip" /dev/shm/unpack-secrets.sh 
