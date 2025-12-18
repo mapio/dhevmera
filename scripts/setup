@@ -59,6 +59,8 @@ _install() {
 
   $RUN rm -rf "$dst"
   $RUN ln -s $(realpath $src) "$dst"
+  $RUN chmod -R 700 "$dstdir"
+
   ok "installed: $dst"
 
 }

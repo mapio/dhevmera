@@ -42,6 +42,8 @@ write_files:
       ./scripts/setup-os
       while [ ! -d /dev/shm/secrets ]; do sleep 1; done
       ./scripts/setup
+      cp /usr/local/bin/code "${DEST}"
+      chmod -R 700 "${DEST}"
 
       touch "${HOME_DIR}/.cloud-bootstrap-complete"
 

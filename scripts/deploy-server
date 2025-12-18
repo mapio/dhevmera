@@ -52,14 +52,14 @@ done
 
 log "Deploying secrets script to server..."
 
-scp unpack-secrets.sh "$ip":
+scp unpack-secrets "$ip":
 
 ok "Secrets script deployed."
 
 ## Unpack secrets on server
 
 log "Unpacking secrets on server..."
-ssh -t "$ip" ./unpack-secrets.sh 
+ssh -t "$ip" ./unpack-secrets
 
 ## Wait for cloud-init to complete
 
