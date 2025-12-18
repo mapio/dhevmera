@@ -42,13 +42,11 @@ log "Waiting for server '$SERVER' at $ip to become reachable on ssh port..."
 
 for delay in 1 1 2 3 5 8 13 21; do
   if nc -z -w2 "$ip" 22; then
-    ok "ssh port is open"
+    ok "Server '$SERVER' is reachable at $ip."
     break
   fi
   sleep "$delay"
 done
-
-ok "Server '$SERVER' is reachable at $ip."
 
 ## Deploy secrets
 

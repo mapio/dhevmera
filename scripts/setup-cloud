@@ -1,8 +1,0 @@
-#!/usr/bin/env bash
-
-set -euo pipefail
-
-/home/santini/dhevmera/scripts/setup-os
-while [ ! -f /dev/shm/unpack-secrets.sh ]; do
-  sleep 1
-done

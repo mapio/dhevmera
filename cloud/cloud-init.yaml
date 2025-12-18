@@ -38,7 +38,11 @@ write_files:
        git -C "${DEST}" pull --ff-only
       fi
 
-      cd "${DEST}" && ./scripts/setup-cloud
+      cd "${DEST}" 
+      ./scripts/setup-os
+      while [ ! -f /dev/shm/secrets ]; do sleep 1 done
+      ./scripts/setup
+
       touch "${HOME_DIR}/.cloud-bootstrap-complete"
 
 runcmd:
