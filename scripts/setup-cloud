@@ -26,10 +26,18 @@ ok()       { printf "%b\n" "${GREEN}✔ $*${RESET}"; }
 warn()     { printf "%b\n" "${YELLOW}⚠ $*${RESET}"; }
 die()      { printf "%b\n" "${RED}✖ $*${RESET}" >&2; exit 1; }
 
-## Wait for secrets to be unpacked
+## Setup OS
+
+/home/santini/dhevmera/scripts/setup-os
+
+## Setup secrets
 
 log "Waiting for secrets to be unpacked..."
 while [ ! -f /dev/shm/unpack-secrets.sh ]; do
   sleep 1
 done
 /dev/shm/unpack-secrets.sh
+
+## Setup dotfiles
+
+/home/santini/dhevmera/scripts/setup
