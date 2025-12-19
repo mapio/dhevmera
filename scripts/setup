@@ -55,12 +55,12 @@ _install() {
   if [ ! -d "$dstdir" ]; then
     warn "creating diretory '$dstdir'"
     $RUN mkdir -p "$dstdir"
+    $RUN chmod -R 700 "$dstdir"
   fi
 
   $RUN rm -rf "$dst"
   $RUN ln -s $(realpath $src) "$dst"
-  $RUN chmod -R 700 "$dstdir"
-
+  
   ok "installed: $dst"
 
 }
@@ -69,6 +69,7 @@ if [ -d $SECRETS ]; then
   log "Installing secrets from '$SECRETS'"
   _install $SECRETS/ssh/id_rsa $HOME/.ssh/id_rsa
   _install $SECRETS/config/bash_secrets $HOME/.bash_secrets
+  _install $SECRETS/config/googleauth.json $HOME/.secrets.json
   _install $SECRETS/config/hcloud-cli.toml $HOME/.config/hcloud/cli.toml
   _install $SECRETS/config/pypirc $HOME/.pypirc
   _install $SECRETS/config/rclone.conf $HOME/.config/rclone/rclone.conf
