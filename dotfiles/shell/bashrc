@@ -1,5 +1,9 @@
 if [[ $PS1 ]]; then
 
+  is_cmd() {
+    command -v "$1" >/dev/null 2>&1
+  }
+
   # safety aliases
 
   alias rm='rm -i'
@@ -31,7 +35,7 @@ if [[ $PS1 ]]; then
 
   # docker
   
-  if [[ $(type -t docker) == file ]]; then
+  if is_cmd docker; then
     alias d=docker
     alias dr='docker run'
     alias drit='docker run -it'
@@ -68,7 +72,7 @@ if [[ $PS1 ]]; then
 
   # HSTR
 
-  if [[ $(type -t hstr) == file ]]; then
+  if is_cmd hstr; then
     shopt -s histappend              # append new history items to .bash_history
     export HSTR_CONFIG=hicolor         # get more colors
     export HISTCONTROL=ignorespace   # leading space hides commands from history
@@ -80,15 +84,15 @@ if [[ $PS1 ]]; then
 
   # xclip
   
-  if [[ $(type -t xclip) == file ]]; then
+  if is_cmd xclip; then
     alias pbpaste='xclip -selection clipboard -rmlastnl -o'
     alias pbcopy='xclip -selection clipboard -rmlastnl -i'
   fi
 
   # direnv
   
-  if [ -f "/usr/bin/direnv" ]; then
-    eval "$(/usr/bin/direnv hook bash)"
+  if is_cmd direnv; then
+    eval "$(direnv hook bash)"
   fi
 
   # sdkman
@@ -113,5 +117,16 @@ if [[ $PS1 ]]; then
     local dst=$(echo $1 | tr : /)
     code --folder-uri="vscode-remote://ssh-remote+$dst"
   } 
+
+  # starship
+
+  if is_cmd starship; then
+    eval "$(/usr/local/bin/starship init bash)"
+    function _set_win_title() {
+      echo -ne "\033]0; ${USER}@${HOSTNAME} \007"
+    }
+    starship_precmd_user_func="_set_win_title"
+  fi
+
 
 fi
