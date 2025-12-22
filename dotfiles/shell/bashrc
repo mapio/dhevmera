@@ -85,16 +85,6 @@ if [[ $PS1 ]]; then
     alias pbcopy='xclip -selection clipboard -rmlastnl -i'
   fi
 
-  # starship
-
-  if [ -f "/usr/local/bin/starship" ]; then
-    eval "$(/usr/local/bin/starship init bash)"
-    function _set_win_title() {
-      echo -ne "\033]0; ${USER}@${HOSTNAME} \007"
-    }
-    starship_precmd_user_func="_set_win_title"
-  fi
-
   # direnv
   
   if [ -f "/usr/bin/direnv" ]; then
@@ -105,10 +95,6 @@ if [[ $PS1 ]]; then
   
   export SDKMAN_DIR="$HOME/.sdkman"
   [[ -s "$HOME/.sdkman/bin/sdkman-init.sh" ]] && source "$HOME/.sdkman/bin/sdkman-init.sh"
-
-  # rust
-
-  [[ -s "$HOME/.cargo/env" ]] && source "$HOME/.cargo/env"
 
   # hatch
 
@@ -129,9 +115,3 @@ if [[ $PS1 ]]; then
   } 
 
 fi
-
-# nvm
-
-export NVM_DIR="$HOME/.nvm"
-[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
-[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion

@@ -44,8 +44,8 @@ if [ ! -r .minipath ]; then
   for p in "${path[@]}"; do
     if [ -d "$p" ]; then
       PATH="$p:$PATH"
-    else
-      echo "PATH:formation: discarding: $p" >&2
+    # else
+    #   echo "PATH:formation: discarding: $p" >&2
     fi
   done
   MANPATH=/usr/share/man
@@ -89,12 +89,12 @@ export COMPOSE_BAKE=true
 
 [[ -s "$HOME/.cargo/env" ]] && source "$HOME/.cargo/env"
 
-# secrets
-
-source $HOME/.bash_secrets
-
 # ssh agent
 
 if [[ -z "$SSH_AGENT_PID" ]]; then
   eval "$(ssh-agent -s)" >/dev/null 2>&1
 fi
+
+# secrets
+
+[[ -r "$HOME/.bash_secrets" ]] && source $HOME/.bash_secrets
