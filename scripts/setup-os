@@ -170,6 +170,16 @@ else
   curl -fsSL https://tailscale.com/install.sh | sh
 fi
 
+## Rclone
+
+log "Installing Rclone"
+if command -v rclone >/dev/null 2>&1; then
+  log "Rclone already installed: $(rclone --version | head -n1)"
+else
+  log "Downloading and installing Rclone"
+  curl https://rclone.org/install.sh | sudo bash
+fi
+
 # Done!
 
 ok "OS setup completed successfully!"
