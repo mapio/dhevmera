@@ -1,8 +1,8 @@
-[custom.watson]
-command = """watson status -p"""
-when = """ ! test "$(cat ~/.config/watson/state)" == "{}" """
-symbol = "⏳"
-format = "[ $symbol ($output)]($style)"
-disabled = false
+# [custom.watson]
+# command = """watson status -p"""
+# when = """ ! test "$(cat ~/.config/watson/state)" == "{}" """
+# symbol = "⏳"
+# format = "[ $symbol ($output)]($style)"
+# disabled = false
 [battery]
 disabled = true
