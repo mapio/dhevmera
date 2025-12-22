@@ -2,6 +2,9 @@
 
 set -euo pipefail
 
+SERVER_TYPE="${SERVER_TYPE:-cx33}"
+SERVER_NAME="${SERVER_NAME:-dhevmera}"
+
 # Define helper function for output
 
 if [ -t 1 ]; then
@@ -22,35 +25,34 @@ die()      { printf "%b\n" "${RED}✖ $*${RESET}" >&2; exit 1; }
 
 ## Create server
 
-SERVER="dhevmera"
-
-log "Creating server '$SERVER'..."
+log "Creating server '$SERVER_NAME', type '$SERVER_TYPE'..."
 
 hcloud server create \
-  --name "$SERVER" \
-  --type cx33 \
+  --name "$SERVER_NAME" \
+  --type "$SERVER_TYPE" \
   --image ubuntu-24.04 \
+  --firewall ssh-wireguard \
   --user-data-from-file ./cloud/cloud-init.yaml
 
-ok "Server '$SERVER' created."
+ok "Server created."
 
 ## Wait for server to be reachable
 
-ip="$(hcloud server ip "$SERVER")"
+SERVER_IP="$(hcloud server ip "$SERVER_NAME")"
 
-log "Waiting for server '$SERVER' at $ip to become reachable on ssh port and have the dhevmera directory..."
+log "Waiting for server at $SERVER_IP to become reachable on ssh port and have the dhevmera directory..."
 
 for delay in 1 1 2 3 5 8 13 21; do
-  if nc -z -w2 "$ip" 22; then
-    ok "Server '$SERVER' is reachable at $ip."
+  if nc -z -w2 "$SERVER_IP" 22; then
+    ok "Server is reachable at $SERVER_IP."
     break
   fi
   sleep "$delay"
 done
 
 for delay in 1 1 2 3 5 8 13 21; do
-  if ssh "$ip" test -d dhevmera; then
-    ok "Server '$SERVER' has the dhevmera directory."
+  if ssh "$SERVER_IP" test -d dhevmera; then
+    ok "Server has the dhevmera directory."
     break
   fi
   sleep "$delay"
@@ -60,18 +62,18 @@ done
 
 log "Deploying secrets script to server..."
 
-scp ./scripts/unpack-secrets "$ip":dhevmera/scripts/unpack-secrets
+scp ./scripts/unpack-secrets "$SERVER_IP":dhevmera/scripts/unpack-secrets
 
 ok "Secrets script deployed."
 
 ## Unpack secrets on server
 
 log "Unpacking secrets on server..."
-ssh -t "$ip" ./dhevmera/scripts/unpack-secrets
+ssh -t "$SERVER_IP" ./dhevmera/scripts/unpack-secrets
 
 ## Wait for cloud-init to complete
 
 log "Waiting for cloud-init to complete on server..."
-ssh $(hcloud server ip dhevmera) -- cloud-init status --wait
+ssh "$SERVER_IP" -- cloud-init status --wait
 
 ok "Cloud-init completed on server."
