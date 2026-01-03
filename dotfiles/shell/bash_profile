@@ -89,12 +89,6 @@ export COMPOSE_BAKE=true
 
 [[ -s "$HOME/.cargo/env" ]] && source "$HOME/.cargo/env"
 
-# ssh agent
-
-if [[ -z "$SSH_AGENT_PID" ]]; then
-  eval "$(ssh-agent -s)" >/dev/null 2>&1
-fi
-
 # secrets
 
 [[ -r "$HOME/.bash_secrets" ]] && source $HOME/.bash_secrets

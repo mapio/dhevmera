@@ -128,5 +128,37 @@ if [[ $PS1 ]]; then
     starship_precmd_user_func="_set_win_title"
   fi
 
+  # ssh-agent
+
+  SSH_AGENT_ENV="$HOME/.ssh_agent_env"
+  
+  is_valid_ssh_agent() {
+    local pid=$1
+    if [[ -z "$pid" ]]; then
+      return 1
+    fi
+    if ! ps -p "$pid" -o comm= 2>/dev/null | grep -q "ssh-agent"; then
+      return 1
+    fi
+    if ! ps -p "$pid" -o user= 2>/dev/null | grep -q "$USER"; then
+      return 1
+    fi
+    return 0
+  }
+
+  if [[ -z "$SSH_AGENT_PID" ]] && [[ -f "$SSH_AGENT_ENV" ]]; then
+    source "$SSH_AGENT_ENV"
+  fi
+  if is_valid_ssh_agent "$SSH_AGENT_PID"; then
+    export SSH_AUTH_SOCK
+    export SSH_AGENT_PID
+  else
+    unset SSH_AGENT_PID
+  fi
+  if [[ -z "$SSH_AGENT_PID" ]]; then
+    eval "$(ssh-agent -s)"
+    echo "export SSH_AGENT_PID=$SSH_AGENT_PID" > "$SSH_AGENT_ENV"
+    echo "export SSH_AUTH_SOCK=$SSH_AUTH_SOCK" >> "$SSH_AGENT_ENV"
+  fi
 
 fi
