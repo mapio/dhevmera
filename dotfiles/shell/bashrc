@@ -156,7 +156,7 @@ if [[ $PS1 ]]; then
     unset SSH_AGENT_PID
   fi
   if [[ -z "$SSH_AGENT_PID" ]]; then
-    eval "$(ssh-agent -s)"
+    eval "$(ssh-agent -s)" >/dev/null 2>&1
     echo "export SSH_AGENT_PID=$SSH_AGENT_PID" > "$SSH_AGENT_ENV"
     echo "export SSH_AUTH_SOCK=$SSH_AUTH_SOCK" >> "$SSH_AGENT_ENV"
   fi
