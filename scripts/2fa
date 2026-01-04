@@ -1,0 +1,27 @@
+#!/usr/bin/python3
+
+import hmac, base64, struct, hashlib, time, json
+
+def get_hotp_token(secret, intervals_no):
+  secret = secret.replace(' ', '')
+  if len(secret) % 8: secret += '=' * (8 - len(secret) % 8)
+  key = base64.b32decode(secret, True)
+  msg = struct.pack(">Q", intervals_no)
+  h = hmac.new(key, msg, hashlib.sha1).digest()
+  o = h[19] & 15
+  h = str((struct.unpack(">I", h[o:o+4])[0] & 0x7fffffff) % 1000000)
+  return '{:06}'.format(int(h))
+
+
+def get_totp_token(secret):
+  return get_hotp_token(secret, int(time.time()) // 30)
+
+def main():
+  with open('.secrets.json', 'r') as f: secrets = json.load(f)
+
+  for label, key in sorted(secrets.items()):
+    print('{}: {}'.format(label, get_totp_token(key)))
+
+
+if __name__ == "__main__":
+  main()
