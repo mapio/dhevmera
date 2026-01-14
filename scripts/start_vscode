@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+VSCODE_DIR="/chome/santini/vscode"
+
+if [ ! -d "$VSCODE_DIR" ]; then
+  echo "Missing VSCode directory at $VSCODE_DIR"
+  exit 1
+fi
+
+nohup code --cli-data-dir "$VSCODE_DIR/cli-data-dir" serve-web --server-data-dir "$VSCODE_DIR/server-data-dir" --connection-token "$VSCODE_TOKEN" > "$VSCODE_DIR/vscode.log" 2>&1 &
+tailscale funnel --bg 8000

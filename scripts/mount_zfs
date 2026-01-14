@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+POOL=chome
+DATASET=chome/santini
+
+sudo zpool import -af
+sudo zfs load-key "$POOL/$DATASET" || {
+  echo "Failed to load ZFS key for $POOL/$DATASET"
+  exit 1
+}
+sudo zfs mount "$POOL/$DATASET"

@@ -4,7 +4,7 @@ set -euo pipefail
 
 # Keep a log of the setup process
 
-LOGFILE="$HOME/.setup-os.log"
+LOGFILE="$HOME/.install-software.log"
 exec 3>&1
 exec > >(tee -a "$LOGFILE") 2>&1
 
@@ -52,7 +52,19 @@ $SUDO apt-get update -y
 $SUDO apt-get install -y --no-install-recommends tzdata
 $SUDO dpkg-reconfigure -f noninteractive tzdata
 $SUDO apt-get upgrade -y
-$SUDO apt-get install -y git ca-certificates curl gnupg python3-packaging
+$SUDO apt-get install -y \
+  ca-certificates \
+  curl \
+  direnv \
+  git \
+  gnupg \
+  ncdu \
+  python3-packaging \
+  python3-pip \
+  python3-venv \
+  restic \
+  zip \ 
+  zfsutils-linux
 
 ver_ge() {  # ver_ge A B  -> true if A >= B (semver-ish, numeric)
   python3 - <<'EOF' "$1" "$2"
@@ -180,7 +192,20 @@ else
   curl https://rclone.org/install.sh | sudo bash
 fi
 
+# Sdkman + Java
+
+log "Installing SDKMAN!"
+if command -v skd >/dev/null 2>&1; then
+  log "SDKMAN! already installed: $(sdk version  | grep script | cut -d: -f2)"
+else
+  log "Downloading and installing SDKMAN!"
+  curl -s "https://get.sdkman.io" | bash
+  log "Downloading and installing Java 25"
+  source "$HOME/.sdkman/bin/sdkman-init.sh"
+  sdk install java 25.0.1-tem
+fi   
+
 # Done!
 
 ok "OS setup completed successfully!"
-touch "$HOME/.setup-os.complete"
+touch "$HOME/.install-software.complete"

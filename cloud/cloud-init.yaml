@@ -38,12 +38,7 @@ write_files:
        git -C "${DEST}" pull --ff-only
       fi
 
-      cd "${DEST}" 
-      ./scripts/setup-os
-      while [ ! -d /dev/shm/secrets ]; do sleep 1; done
-      ./scripts/setup
-      cp /usr/local/bin/code "${DEST}"
-      chmod -R 700 "${DEST}"
+      cd "${DEST}" && ./scripts/install-software
 
       touch "${HOME_DIR}/.cloud-bootstrap-complete"
 

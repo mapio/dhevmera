@@ -4,11 +4,20 @@ set -euo pipefail
 
 # should dry run?
 
-RUN="${1:+echo}"
+if [ "${1:-}" = "--dry-run" ]; then
+  RUN=echo
+  shift
+else
+  RUN=
+fi
+
+# where are secrets?
+
+SECRETS="${1:-/chome/santini}/secrets"
 
 # Keep a log of the setup process
 
-LOGFILE="$HOME/.setup-dotfiles.log"
+LOGFILE="$HOME/.install-dotfiles.log"
 exec 3>&1
 exec > >(tee -a "$LOGFILE") 2>&1
 
@@ -33,7 +42,6 @@ die()      { printf "%b\n" "${RED}✖ $*${RESET}" >&2; exit 1; }
 # Helper functions
 
 DOTFILES="$(cd "$(dirname "${BASH_SOURCE[0]}")/../dotfiles" && pwd)"
-SECRETS=/chome/santini/secrets
 
 _install() {
   src="$1"
@@ -109,4 +117,4 @@ _install $DOTFILES/vscode/settings.json $HOME/.config/Code/User/settings.json
 
 _install $DOTFILES/misc/wezterm.lua $HOME/.config/wezterm/wezterm.lua
 
-touch "$HOME/.setup-dotfiles.complete"
+touch "$HOME/.install-dotfiles.complete"
