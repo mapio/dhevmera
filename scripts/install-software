@@ -52,19 +52,7 @@ $SUDO apt-get update -y
 $SUDO apt-get install -y --no-install-recommends tzdata
 $SUDO dpkg-reconfigure -f noninteractive tzdata
 $SUDO apt-get upgrade -y
-$SUDO apt-get install -y \
-  ca-certificates \
-  curl \
-  direnv \
-  git \
-  gnupg \
-  ncdu \
-  python3-packaging \
-  python3-pip \
-  python3-venv \
-  restic \
-  zip \ 
-  zfsutils-linux
+$SUDO apt-get install -y ca-certificates curl direnv git gnupg ncdu python3-packaging python3-pip python3-venv restic zip zfsutils-linux
 
 ver_ge() {  # ver_ge A B  -> true if A >= B (semver-ish, numeric)
   python3 - <<'EOF' "$1" "$2"
