@@ -3,7 +3,9 @@
 set -euo pipefail
 
 SERVER_TYPE="${SERVER_TYPE:-cx33}"
+SERVER_LOCATION="nbg1"
 SERVER_NAME="${SERVER_NAME:-dhevmera}"
+SERVER_VOLUME="cloud-home"
 
 # Define helper function for output
 
@@ -25,12 +27,14 @@ die()      { printf "%b\n" "${RED}✖ $*${RESET}" >&2; exit 1; }
 
 ## Create server
 
-log "Creating server '$SERVER_NAME', type '$SERVER_TYPE'..."
+log "Creating server '$SERVER_NAME', type '$SERVER_TYPE' at '$SERVER_LOCATION'..."
 
 hcloud server create \
   --name "$SERVER_NAME" \
   --type "$SERVER_TYPE" \
+  --location "$SERVER_LOCATION" \
   --image ubuntu-24.04 \
+  --volume "$SERVER_VOLUME" \
   --firewall ssh-wireguard \
   --user-data-from-file ./cloud/cloud-init.yaml
 
@@ -58,6 +62,8 @@ for delay in 1 1 2 3 5 8 13 21; do
   sleep "$delay"
 done
 
+if false;
+
 ## Deploy secrets
 
 log "Deploying secrets script to server..."
@@ -70,6 +76,8 @@ ok "Secrets script deployed."
 
 log "Unpacking secrets on server..."
 ssh -t "$SERVER_IP" ./dhevmera/scripts/unpack-secrets
+
+fi
 
 ## Wait for cloud-init to complete
 
