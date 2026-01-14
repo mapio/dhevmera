@@ -13,7 +13,7 @@ fi
 
 # where are secrets?
 
-SECRETS="${1:-/chome/santini}/secrets"
+SECRETS="${1:-/chome/santini/dhevmera}/secrets"
 
 # Keep a log of the setup process
 
