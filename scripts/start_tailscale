@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+if [ -z "$TAILSCALE_AUTH_KEY" ]; then
+  echo "Missing Tailscale auth key"
+  exit 1
+fi
+
+sudo tailscale up --authkey "$TAILSCALE_AUTH_KEY" --hostname dhevmera --ssh --operator santini
