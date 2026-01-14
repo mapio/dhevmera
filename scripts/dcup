@@ -9,7 +9,10 @@ if [ -z "$REPO" ]; then
 fi
 
 devcontainer up \
-  --dotfiles-repository https://github.com/mapio/dhevmera \
-  --dotfiles-install-command ./scripts/setup \
-  --mount type=bind,source=/home/santini/dhevmera,target=/dhevmera \
+  --mount type=bind,source=/chome/santini/dhevmera,target=/dhevmera \
+  --mount type=bind,source=/chome/santini/secrets,target=/secrets \
+  --mount type=bind,source=/usr/local/bin/code,target=/code \
   --workspace-folder "$REPO"
+
+#  --dotfiles-repository https://github.com/mapio/dhevmera \
+#  --dotfiles-install-command ./scripts/setup \

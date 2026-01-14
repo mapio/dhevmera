@@ -33,7 +33,7 @@ die()      { printf "%b\n" "${RED}✖ $*${RESET}" >&2; exit 1; }
 # Helper functions
 
 DOTFILES="$(cd "$(dirname "${BASH_SOURCE[0]}")/../dotfiles" && pwd)"
-SECRETS=/dev/shm/secrets
+SECRETS=/chome/santini/secrets
 
 _install() {
   src="$1"

@@ -6,6 +6,9 @@ set input-meta on
 set output-meta on
 set convert-meta off
 
+# ignore case
+set completion-ignore-case on
+
 # misc
 "\e[3~": delete-char
 "\C-h": backward-delete-char
