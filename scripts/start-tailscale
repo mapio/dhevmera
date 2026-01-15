@@ -2,7 +2,9 @@
 
 set -euo pipefail
 
-if [ -z "$TAILSCALE_AUTH_KEY" ]; then
+source $HOME/.bash_secrets
+
+if [ ! -v TAILSCALE_AUTH_KEY ]; then
   echo "Missing Tailscale auth key"
   exit 1
 fi
