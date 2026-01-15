@@ -3,7 +3,7 @@
 set -euo pipefail
 
 POOL=chome
-DATASET=chome/santini
+DATASET=santini
 
 sudo zpool import -af
 sudo zfs load-key "$POOL/$DATASET" || {
