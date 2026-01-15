@@ -98,9 +98,7 @@ export COMPOSE_BAKE=true
 
 # GPG
 
-if [ -v IN_TERMUX ]; then
-  export GPG_TTY=$(tty)
-fi
+export GPG_TTY=$(tty)
 
 # secrets
 

@@ -189,6 +189,7 @@ else
   log "Downloading and installing SDKMAN!"
   curl -s "https://get.sdkman.io" | bash
   log "Downloading and installing Java 25"
+  export ZSH_VERSION=
   source "$HOME/.sdkman/bin/sdkman-init.sh"
   sdk install java 25.0.1-tem
 fi   
