@@ -4,6 +4,9 @@ ForwardAgent yes
 ForwardX11 no
 ForwardX11Trusted yes
 
+Host * 
+  User santini
+
 # A really bad trick
 
 NoHostAuthenticationForLocalhost yes
