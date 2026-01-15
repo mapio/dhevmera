@@ -11,3 +11,4 @@ sudo zfs load-key "$POOL/$DATASET" || {
   exit 1
 }
 sudo zfs mount "$POOL/$DATASET"
+rm -rf $HOME/dhevmera
