@@ -16,6 +16,11 @@ LogLevel ERROR
 
 # mie
 
+Host tablet
+  HostName tablet
+  User u0_a402
+  Port 8022
+
 Host santini
   HostName santini.docenti.di.unimi.it
 
