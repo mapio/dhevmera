@@ -23,7 +23,7 @@ if [[ $PS1 ]]; then
   alias sudo-apt-phased='sudo apt -o="APT::Get::Always-Include-Phased-Updates=true"'
   alias meet='nohup /opt/google/chrome/chrome --app=https://meet.google.com/ >/dev/null 2>&1 &'
 
-  if [ -x /usr/bin/dircolors ]; then
+  if is_cmd dircolors; then
     test -r ~/.dircolors && eval "$(dircolors -b ~/.dircolors)" || eval "$(dircolors -b)"
     alias l='/bin/ls --color=auto -hl'
     alias ll='/bin/ls --color=auto -hlZ'
