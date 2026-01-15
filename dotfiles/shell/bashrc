@@ -121,7 +121,7 @@ if [[ $PS1 ]]; then
   # starship
 
   if is_cmd starship; then
-    eval "$(/usr/local/bin/starship init bash)"
+    eval "$(starship init bash)"
     function _set_win_title() {
       echo -ne "\033]0; ${USER}@${HOSTNAME} \007"
     }
@@ -130,35 +130,41 @@ if [[ $PS1 ]]; then
 
   # ssh-agent
 
-  SSH_AGENT_ENV="$HOME/.ssh_agent_env"
-  
-  is_valid_ssh_agent() {
-    local pid=$1
-    if [[ -z "$pid" ]]; then
-      return 1
-    fi
-    if ! ps -p "$pid" -o comm= 2>/dev/null | grep -q "ssh-agent"; then
-      return 1
-    fi
-    if ! ps -p "$pid" -o user= 2>/dev/null | grep -q "$USER"; then
-      return 1
-    fi
-    return 0
-  }
-
-  if [[ -z "$SSH_AGENT_PID" ]] && [[ -f "$SSH_AGENT_ENV" ]]; then
-    source "$SSH_AGENT_ENV"
-  fi
-  if is_valid_ssh_agent "$SSH_AGENT_PID"; then
-    export SSH_AUTH_SOCK
-    export SSH_AGENT_PID
+  if [ -v IN_TERMUX ]; then
+    export SSH_AUTH_SOCK="$PREFIX"/var/run/ssh-agent.socket
   else
-    unset SSH_AGENT_PID
-  fi
-  if [[ -z "$SSH_AGENT_PID" ]]; then
-    eval "$(ssh-agent -s)" >/dev/null 2>&1
-    echo "export SSH_AGENT_PID=$SSH_AGENT_PID" > "$SSH_AGENT_ENV"
-    echo "export SSH_AUTH_SOCK=$SSH_AUTH_SOCK" >> "$SSH_AGENT_ENV"
-  fi
+
+    SSH_AGENT_ENV="$HOME/.ssh_agent_env"
+  
+    is_valid_ssh_agent() {
+      local pid=$1
+      if [[ -z "$pid" ]]; then
+        return 1
+      fi
+      if ! ps -p "$pid" -o comm= 2>/dev/null | grep -q "ssh-agent"; then
+        return 1
+      fi
+      if ! ps -p "$pid" -o user= 2>/dev/null | grep -q "$USER"; then
+        return 1
+      fi
+      return 0
+    }
+
+    if [[ -z "$SSH_AGENT_PID" ]] && [[ -f "$SSH_AGENT_ENV" ]]; then
+      source "$SSH_AGENT_ENV"
+    fi
+    if is_valid_ssh_agent "$SSH_AGENT_PID"; then
+      export SSH_AUTH_SOCK
+      export SSH_AGENT_PID
+    else
+      unset SSH_AGENT_PID
+    fi
+    if [[ -z "$SSH_AGENT_PID" ]]; then
+      eval "$(ssh-agent -s)" >/dev/null 2>&1
+      echo "export SSH_AGENT_PID=$SSH_AGENT_PID" > "$SSH_AGENT_ENV"
+      echo "export SSH_AUTH_SOCK=$SSH_AUTH_SOCK" >> "$SSH_AGENT_ENV"
+    fi
+
+  fi	  
 
 fi

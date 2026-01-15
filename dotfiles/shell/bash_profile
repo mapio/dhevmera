@@ -8,11 +8,22 @@ export LESSCHARSET=utf-8
 export LESS='-SR'
 export IGNOREEOF=10000
 
+# are we in termux?
+
+if command -v termux-setup-storage >/dev/null 2>&1; then
+  export IN_TERMUX=1
+  echo "Running in termux..."
+else
+  unset IN_TERMUX
+fi
+
 # locale
 
 export LANG=en_US.UTF-8
 export LC_ALL=$LANG
-eval $(locale)
+if [ -v ON_TABLET ]; then
+  eval $(locale)
+fi
 
 # local stuff
 
@@ -70,10 +81,6 @@ fi
 export EDITOR
 alias e="$EDITOR"
 
-# wexterm
-
-export WEZTERM_SHELL_SKIP_ALL=1
-
 # include .bashrc if it exists
 
 if [[ $PS1 ]] && [ -f ~/.bashrc ]; then
@@ -88,6 +95,12 @@ export COMPOSE_BAKE=true
 # rust
 
 [[ -s "$HOME/.cargo/env" ]] && source "$HOME/.cargo/env"
+
+# GPG
+
+if [ -v IN_TERMUX ]; then
+  export GPG_TTY=$(tty)
+fi
 
 # secrets
 

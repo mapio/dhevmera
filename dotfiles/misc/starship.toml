@@ -4,5 +4,3 @@
 # symbol = "⏳"
 # format = "[ $symbol ($output)]($style)"
 # disabled = false
-[battery]
-disabled = true
