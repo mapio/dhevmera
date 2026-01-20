@@ -12,3 +12,5 @@ sudo zfs load-key "$POOL/$DATASET" || {
 }
 sudo zfs mount "$POOL/$DATASET"
 rm -rf $HOME/dhevmera
+rm -f $HOME/x
+ln -s /chome/santini/x $HOME/x
