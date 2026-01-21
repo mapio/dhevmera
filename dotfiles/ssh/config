@@ -133,8 +133,8 @@ Host rem
 
 # qbt
 
-Host qbt
-  HostName qbt.law.di.unimi.it
+Host parsifal 
+  HostName parsifal.law.di.unimi.it
 
 Host pico
   HostName pico.qbt.cluster
