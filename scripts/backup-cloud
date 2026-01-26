@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
 
-set -euo pipefail
+set -eo pipefail
 
 restic -r rclone:od:Backups/cloud-home backup /chome/santini 
