@@ -2,7 +2,7 @@
 
 set -eo pipefail
 
-VSCODE_DIR="/chome/santini/vscode"
+VSCODE_DIR="${1:-/chome/santini/vscode}"
 
 if [ ! -d "$VSCODE_DIR" ]; then
   echo "Missing VSCode directory at $VSCODE_DIR"

@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+
+set -eo pipefail
+
+if ! command -v rustic >/dev/null 2>&1; then
+  echo "Install rustic first"
+  exit 1
+fi
+
+if [ ! -v RESTIC_PASSWORD ]; then
+  echo "Define the RESTIC_PASSWORD env variable first"
+  exit 1
+fi
+
+export RUSTIC_PASSWORD=$RESTIC_PASSWORD
+nohup rustic -r rclone:od:Backups/cloud-home webdav --path-template '{time}' > $HOME/.rustic.log 2>&1 &
+tailscale serve --bg --http 80 8000
