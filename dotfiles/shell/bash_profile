@@ -44,8 +44,7 @@ export PYTHONIOENCODING=utf8 # for stdout / stderr
 
 # my scripts
 
-path+=($HOME/Documents/Scripts)
-path+=($HOME/Documents/Activities/Programming/cli)
+path+=($HOME/bin)
 path+=($HOME/.local/bin)
 path+=($HOME/.bun/bin)
 
