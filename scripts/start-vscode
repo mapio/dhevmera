@@ -2,12 +2,13 @@
 
 set -eo pipefail
 
-VSCODE_DIR="${1:-/chome/santini/vscode}"
+VSCODE_PATH="${VSCODE_PATH:-/chome/santini/vscode}"
+VSCODE_PORT="${VSCODE_PORT:-8000}"
 
-if [ ! -d "$VSCODE_DIR" ]; then
-  echo "Missing VSCode directory at $VSCODE_DIR"
+if [ ! -d "$VSCODE_PATH" ]; then
+  echo "Missing VSCode directory at $VSCODE_PATH"
   exit 1
 fi
 
-nohup code --cli-data-dir "$VSCODE_DIR/cli-data-dir" serve-web --server-data-dir "$VSCODE_DIR/server-data-dir" --connection-token "$VSCODE_TOKEN" > "$VSCODE_DIR/vscode.log" 2>&1 &
-tailscale funnel --bg 8000
+nohup code --cli-data-dir "$VSCODE_PATH/cli-data-dir" serve-web --port $VSCODE_PORT --server-data-dir "$VSCODE_PATH/server-data-dir" --connection-token "$VSCODE_TOKEN" > "$VSCODE_PATH/vscode.log" 2>&1 &
+tailscale funnel --bg $VSCODE_PORT
