@@ -19,7 +19,7 @@ else
   exit 1
 fi
 
-# Define helper function for output
+# Define helper function and vars 
 
 if [ -t 3 ]; then
   RED='\033[0;31m'
@@ -37,6 +37,20 @@ ok()       { printf "\n%b\n\n" "${GREEN}✔ $*${RESET}"; }
 warn()     { printf "\n%b\n\n" "${YELLOW}⚠ $*${RESET}"; }
 die()      { printf "\n%b\n\n" "${RED}✖ $*${RESET}" >&2; exit 1; }
 
+ver_ge() {  # ver_ge A B  -> true if A >= B (semver-ish, numeric)
+  python3 - <<'EOF' "$1" "$2"
+import sys
+from packaging.version import Version
+a,b = sys.argv[1], sys.argv[2]
+print(int(Version(a) >= Version(b)))
+EOF
+}
+
+NODE_MAJOR=24
+DOCKER_MAJOR=29
+ARCH=$(dpkg --print-architecture)
+. /etc/os-release
+
 # Fix timezone to avoid tzdata prompts
 
 export DEBIAN_FRONTEND=noninteractive
@@ -52,147 +66,25 @@ $SUDO apt-get update -y
 $SUDO apt-get install -y --no-install-recommends tzdata
 $SUDO dpkg-reconfigure -f noninteractive tzdata
 $SUDO apt-get upgrade -y
-$SUDO apt-get install -y ca-certificates curl direnv git gnupg jq ncdu python3-packaging python3-pip python3-venv restic zip zfsutils-linux
-
-ver_ge() {  # ver_ge A B  -> true if A >= B (semver-ish, numeric)
-  python3 - <<'EOF' "$1" "$2"
-import sys
-from packaging.version import Version
-a,b = sys.argv[1], sys.argv[2]
-print(int(Version(a) >= Version(b)))
-EOF
-}
+$SUDO apt-get install -y ca-certificates curl direnv git gnupg hcloud-cli jq ncdu python3-packaging python3-pip python3-venv restic zip zfsutils-linux
 
 ## Update or install additional software
 
-NODE_MAJOR=24
-DOCKER_MAJOR=29
-ARCH=$(dpkg --print-architecture)
-. /etc/os-release
+for script in ./scripts/install.d/*.sh; do
 
-$SUDO install -d -m 0755 /etc/apt/keyrings
-curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key \
-  | $SUDO gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg
-curl -fsSL https://download.docker.com/linux/ubuntu/gpg \
-  | $SUDO gpg --dearmor -o /etc/apt/keyrings/docker.gpg
-# curl -fsSL https://packages.microsoft.com/keys/microsoft.asc \
-#   | $SUDO gpg --dearmor -o /etc/apt/keyrings/microsoft.gpg
-$SUDO chmod a+r /etc/apt/keyrings/*.gpg
+  filename=$(basename "$script")
+  name=${filename#??-}
+  name=${name%.sh}
 
-echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_${NODE_MAJOR}.x nodistro main" \
-  | $SUDO tee /etc/apt/sources.list.d/nodesource.list > /dev/null
-echo "deb [arch=$ARCH signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu $VERSION_CODENAME stable" \
-  | $SUDO tee /etc/apt/sources.list.d/docker.list > /dev/null
-# echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/microsoft.gpg] https://packages.microsoft.com/repos/code stable main" \
-#   | $SUDO tee /etc/apt/sources.list.d/vscode.list > /dev/null
-$SUDO chmod a+r /etc/apt/sources.list.d/*.list
+  log "Running: $name"
 
-$SUDO apt-get update -y
+  source "$script"
+  status=$?
 
-## NodeJS
-
-have_node_ver() {
-  command -v node >/dev/null 2>&1 || return 1
-  node -p "process.versions.node" 2>/dev/null | tr -d '\r'
-}
-NODE_VER="$(have_node_ver || true)"
-
-
-if [ -n "$NODE_VER" ] && [ "$(ver_ge "$NODE_VER" "${NODE_MAJOR}.0.0")" = "1" ]; then
-  log "Node already installed: $NODE_VER (>= ${NODE_MAJOR}.0.0)"
-else
-  log "Installing/upgrading Node (need >= ${NODE_MAJOR}.0.0; have ${NODE_VER:-none})"
-
-  $SUDO apt-get remove -y nodejs npm || true
-  $SUDO apt-get install -y nodejs
-
-fi
-
-## Docker
-
-docker_server_ver() {
-  command -v docker >/dev/null 2>&1 || return 1
-  docker version --format '{{.Server.Version}}' 2>/dev/null | tr -d '\r'
-}
-DOCKER_VER="$(docker_server_ver || true)"
-
-if [ -n "$DOCKER_VER" ] && [ "$(ver_ge "$DOCKER_VER" "${DOCKER_MAJOR}.0.0")" = "1" ]; then
-  log "Docker already installed: $DOCKER_VER (>= ${DOCKER_MAJOR}.0.0)"
-else
-  log "Installing/upgrading Docker (need >= ${DOCKER_MAJOR}.0.0; have ${DOCKER_VER:-none})"
-
-  $SUDO apt remove $(dpkg --get-selections docker.io docker-compose docker-compose-v2 docker-doc podman-docker containerd runc | cut -f1)
-  $SUDO apt-get install -y \
-    docker-ce \
-    docker-ce-cli \
-    containerd.io \
-    docker-buildx-plugin \
-    docker-compose-plugin
-
-  $SUDO systemctl enable docker
-  $SUDO systemctl start docker
-
-fi
-
-## Code
-
-if command -v code >/dev/null 2>&1; then
-  log "VS Code already installed: $(code --version | head -n1)"
-else
-  log "Installing VS Code CLI"
-  curl -#L "https://code.visualstudio.com/sha/download?os=cli-alpine-x64" | $SUDO tar zxf - -C /usr/local/bin
-fi
-
-## Devcontainers CLI
-
-log "Installing devcontainer CLI"
-$SUDO npm install -g @devcontainers/cli
-
-## Starship
-
-if command -v starship >/dev/null 2>&1; then
-  log "Starship already installed: $(starship --version | head -n1)"
-else
-  log "Installing Starship prompt"
-  TEMP_FILE=$(mktemp)
-  curl -#Lo "$TEMP_FILE" https://starship.rs/install.sh
-  chmod +x "$TEMP_FILE"
-  $SUDO "$TEMP_FILE" --yes
-  rm -f "$TEMP_FILE"
-fi
-
-## Tailscale
-
-if command -v tailscale >/dev/null 2>&1; then
-  log "Tailscale already installed: $(tailscale version | head -n1)"
-else
-  log "Installing Tailscale"
-  curl -fsSL https://tailscale.com/install.sh | sh
-fi
-
-## Rclone
-
-log "Installing Rclone"
-if command -v rclone >/dev/null 2>&1; then
-  log "Rclone already installed: $(rclone --version | head -n1)"
-else
-  log "Downloading and installing Rclone"
-  curl https://rclone.org/install.sh | sudo bash
-fi
-
-# Sdkman + Java
-
-log "Installing SDKMAN!"
-if command -v skd >/dev/null 2>&1; then
-  log "SDKMAN! already installed: $(sdk version  | grep script | cut -d: -f2)"
-else
-  log "Downloading and installing SDKMAN!"
-  curl -s "https://get.sdkman.io" | bash
-  log "Downloading and installing Java 25"
-  export ZSH_VERSION=
-  source "$HOME/.sdkman/bin/sdkman-init.sh"
-  sdk install java 25.0.1-tem
-fi   
+  if [ $status -ne 0 ]; then
+    log "ERROR: $name failed with exit code $status"
+  fi
+done
 
 # Done!
 
