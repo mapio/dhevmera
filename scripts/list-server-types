@@ -1,0 +1,20 @@
+#!/bin/bash
+
+hcloud server-type list -o json | jq -r '
+  .[] as $s
+  | select($s.deprecated == false)
+  | $s.prices[]
+  | select(.location == "nbg1")
+  | [
+      $s.name, 
+      $s.architecture,
+      (.price_hourly.gross | tonumber * 10000 | floor / 10000),
+      $s.cores,
+      $s.memory,
+      $s.disk,
+      (.included_traffic / (1024*1024*1024*1024)),
+      $s.category,
+      $s.cpu_type
+    ]
+  | @tsv
+' | sort -nk4,4  -nk3,3

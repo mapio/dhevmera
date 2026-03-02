@@ -4,7 +4,7 @@ set -eo pipefail
 
 SERVER_TYPE="${SERVER_TYPE:-cx33}"
 SERVER_NAME="${SERVER_NAME:-dhevmera}"
-SERVER_LOCATION="nbg1"
+SERVER_LOCATION="${SERVER_LOCATION:-nbg1}"
 SERVER_VOLUME="cloud-home"
 
 # Define helper function for output
@@ -27,7 +27,7 @@ die()      { printf "%b\n" "${RED}✖ $*${RESET}" >&2; exit 1; }
 
 ## Create server
 
-log "Creating server '$SERVER_NAME', type '$SERVER_TYPE'..."
+log "Creating server '$SERVER_NAME', type '$SERVER_TYPE', location '$SERVER_LOCATION'..."
 
 hcloud server create \
   --name "$SERVER_NAME" \
