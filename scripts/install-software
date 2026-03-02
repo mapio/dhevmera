@@ -51,22 +51,8 @@ DOCKER_MAJOR=29
 ARCH=$(dpkg --print-architecture)
 . /etc/os-release
 
-# Fix timezone to avoid tzdata prompts
-
 export DEBIAN_FRONTEND=noninteractive
 export TZ=Europe/Rome
-
-$SUDO ln -snf "/usr/share/zoneinfo/$TZ" /etc/localtime
-echo "$TZ" | $SUDO tee /etc/timezone > /dev/null
-
-# Update and install system software
-
-log "Updating package lists and installing prerequisites..."
-$SUDO apt-get update -y
-$SUDO apt-get install -y --no-install-recommends tzdata
-$SUDO dpkg-reconfigure -f noninteractive tzdata
-$SUDO apt-get upgrade -y
-$SUDO apt-get install -y ca-certificates curl direnv git gnupg hcloud-cli jq ncdu python3-packaging python3-pip python3-venv restic zip zfsutils-linux
 
 ## Update or install additional software
 

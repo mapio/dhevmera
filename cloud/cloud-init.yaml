@@ -1,12 +1,23 @@
 #cloud-config
 
 package_update: true
-package_upgrade: false
+package_upgrade: true
 
 packages:
-  - curl
-  - git
   - ca-certificates
+  - curl
+  - direnv
+  - git
+  - gnupg
+  - hcloud-cli
+  - jq
+  - ncdu
+  - python3-packaging
+  - python3-pip
+  - python3-venv
+  - restic
+  - zfsutils-linux
+  - zip
 
 users:
   - name: santini
