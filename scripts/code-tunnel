@@ -1,0 +1,28 @@
+#!/usr/bin/bash
+
+TUNNEL_NAME="${TUNNEL_NAME:-parsifal}"
+VSCODE_PATH="${VSCODE_PATH:$HOME/vscode}"
+VSCODE_DATA_PATH="${VSCODE_DATA_PATH:-$VSCODE_PATH/data}"
+
+export VSCODE_CLI_USE_FILE_KEYCHAIN=1
+export VSCODE_CLI_DISABLE_KEYCHAIN_ENCRYPT=1
+
+BASE_CMD=("$VSCODE_PATH/code" --extensions-dir "$VSCODE_DATA_PATH/ext" --user-data-dir "$VSCODE_DATA_PATH/usr" --cli-data-dir "$VSCODE_DATA_PATH/cli" tunnel --server-data-dir "$VSCODE_DATA_PATH/srv" --name "$TUNNEL_NAME")
+
+case "$1" in
+	auth)
+		"${BASE_CMD[@]}" user login --provider github
+		;;
+	show)
+		"${BASE_CMD[@]}" user show
+		;;
+	start)
+		"${BASE_CMD[@]}"
+		;;
+	cmd)    "${BASE_CMD[@]} $@"
+		;;
+	*)
+		echo "Usage: $0 {auth|show|start|cmd}" >&2
+		exit 1
+		;;
+esac

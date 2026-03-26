@@ -1,0 +1,37 @@
+#!/usr/bin/env bash
+
+set -eo pipefail
+
+FORGET_ARGS=(
+  --keep-within-hourly 2d
+  --keep-within-daily 14d
+  --keep-within-weekly 60d
+  --keep-within-monthly 730d
+)
+RESTIC_REPOSITORY=rclone:od:Backups/cloud-home
+
+case "${1:-}" in
+  "")
+    restic forget "${FORGET_ARGS[@]}" --dry-run
+    ;;
+  f)
+    restic forget "${FORGET_ARGS[@]}"
+    ;;
+  p)
+    restic prune
+    restic check
+    ;;
+  c)
+    restic check
+    ;;
+  s)
+    restic stats
+    ;;
+  l)
+    restic snapshots
+    ;;
+  *)
+    echo "Usage: $(basename "$0") [f|p|c|s|l]" >&2
+    exit 1
+    ;;
+esac
