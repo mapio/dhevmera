@@ -8,7 +8,7 @@ FORGET_ARGS=(
   --keep-within-weekly 60d
   --keep-within-monthly 730d
 )
-RESTIC_REPOSITORY=rclone:od:Backups/cloud-home
+export RESTIC_REPOSITORY=rclone:od:Backups/cloud-home
 
 case "${1:-}" in
   "")
