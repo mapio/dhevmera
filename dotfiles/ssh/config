@@ -138,8 +138,12 @@ Host rem
 
 # qbt
 
-Host parsifal 
+Host parsifal
   HostName parsifal.law.di.unimi.it
+
+Host gitlab.qbt.cluster
+  HostName 10.10.10.100
+  ProxyJump parsifal
 
 Host pico
   HostName pico.qbt.cluster
