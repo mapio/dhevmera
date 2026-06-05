@@ -2,4 +2,11 @@
 
 set -eo pipefail
 
+source $HOME/.bash_secrets
+
+if [ ! -v RESTIC_PASSWORD ]; then
+  echo "Missing RESTIC_PASSWORD environment variable"
+  exit 1
+fi
+
 restic -r rclone:od:Backups/cloud-home backup /chome/santini 
