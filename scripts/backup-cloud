@@ -9,4 +9,4 @@ if [ ! -v RESTIC_PASSWORD ]; then
   exit 1
 fi
 
-restic -r rclone:od:Backups/cloud-home backup /chome/santini 
+restic -r rclone:od:Backups/cloud-home backup /chome/santini 2>&1 | ts '[%F %T]'
