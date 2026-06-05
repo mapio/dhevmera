@@ -146,10 +146,12 @@ Host gitlab.qbt.cluster
   ProxyJump parsifal
 
 Host pico
-  HostName pico.qbt.cluster
+  HostName 10.10.10.100
+  ProxyJump parsifal
 
 Host pico2
   HostName pico2.qbt.cluster
+  ProxyJump parsifal
 
 Host minersp
   User massimo
