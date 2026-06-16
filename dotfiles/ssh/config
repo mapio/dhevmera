@@ -4,11 +4,6 @@ ForwardAgent yes
 ForwardX11 no
 ForwardX11Trusted yes
 
-Host * 
-  User santini
-
-# A really bad trick
-
 NoHostAuthenticationForLocalhost yes
 StrictHostKeyChecking no
 UserKnownHostsFile /dev/null
@@ -181,3 +176,6 @@ Host qbts9
   HostName 159.149.130.195
   #KexAlgorithms +diffie-hellman-group1-sha1
   HostKeyAlgorithms +ssh-rsa
+
+Host *
+  User santini
