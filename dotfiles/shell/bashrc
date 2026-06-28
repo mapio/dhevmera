@@ -150,21 +150,32 @@ if [[ $PS1 ]]; then
       return 0
     }
 
-    if [[ -z "$SSH_AGENT_PID" ]] && [[ -f "$SSH_AGENT_ENV" ]]; then
-      source "$SSH_AGENT_ENV"
-    fi
-    if is_valid_ssh_agent "$SSH_AGENT_PID"; then
-      export SSH_AUTH_SOCK
-      export SSH_AGENT_PID
-    else
-      unset SSH_AGENT_PID
-    fi
-    if [[ -z "$SSH_AGENT_PID" ]]; then
-      eval "$(ssh-agent -s)" >/dev/null 2>&1
-      echo "export SSH_AGENT_PID=$SSH_AGENT_PID" > "$SSH_AGENT_ENV"
-      echo "export SSH_AUTH_SOCK=$SSH_AUTH_SOCK" >> "$SSH_AGENT_ENV"
+    # Check if SSH_AUTH_SOCK already points to a live agent (e.g. forwarded from client).
+    # ssh-add -l exits 2 only when it cannot connect; 0/1 mean the agent is reachable.
+    _ssh_sock_live() {
+      [[ -S "${SSH_AUTH_SOCK:-}" ]] || return 1
+      ssh-add -l &>/dev/null; [[ $? -ne 2 ]]
+    }
+
+    if ! _ssh_sock_live; then
+      if [[ -z "$SSH_AGENT_PID" ]] && [[ -f "$SSH_AGENT_ENV" ]]; then
+        source "$SSH_AGENT_ENV"
+      fi
+      if is_valid_ssh_agent "$SSH_AGENT_PID"; then
+        export SSH_AUTH_SOCK
+        export SSH_AGENT_PID
+      else
+        unset SSH_AGENT_PID
+      fi
+      if [[ -z "$SSH_AGENT_PID" ]]; then
+        eval "$(ssh-agent -s)" >/dev/null 2>&1
+        echo "export SSH_AGENT_PID=$SSH_AGENT_PID" > "$SSH_AGENT_ENV"
+        echo "export SSH_AUTH_SOCK=$SSH_AUTH_SOCK" >> "$SSH_AGENT_ENV"
+      fi
     fi
 
-  fi	  
+    unset -f _ssh_sock_live
+
+  fi
 
 fi
