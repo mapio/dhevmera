@@ -4,6 +4,9 @@ ForwardAgent yes
 ForwardX11 no
 ForwardX11Trusted yes
 
+ServerAliveInterval 15
+ServerAliveCountMax 3
+
 NoHostAuthenticationForLocalhost yes
 StrictHostKeyChecking no
 UserKnownHostsFile /dev/null
@@ -17,7 +20,7 @@ Host tablet
   Port 8022
 
 Host phone
-  Hostname phone
+  HostName phone
   User u0_a306
   Port 8022
 
@@ -124,9 +127,9 @@ Host naicons-indaco
   HostName login.indaco.unimi.it
   IdentityFile ~/.ssh/id_naicons-indaco
   #Password 145811vale
-  ControlMaster auto
-  ControlPath ~/.ssh/sockets/%r@%h-%p
-  ControlPersist 10m
+  #ControlMaster auto
+  #ControlPath ~/.ssh/sockets/%r@%h-%p
+  #ControlPersist 10m
 
 # remarkable2
 
