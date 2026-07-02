@@ -24,6 +24,9 @@ Host phone
 Host santini
   HostName santini.docenti.di.unimi.it
 
+Host svm
+  HostName santinivm.docenti.di.unimi.it
+
 Host nano
   HostName nanobook.local
 
