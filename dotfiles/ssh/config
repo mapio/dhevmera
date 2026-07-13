@@ -80,6 +80,12 @@ Host s3
 Host parsifal
   HostName 159.149.133.232
 
+Host parsifal-sync
+  HostName parsifal.law.di.unimi.it
+  IdentityFile ~/.ssh/id_ed25519_qbt_sync
+  IdentitiesOnly yes
+  ForwardAgent no
+
 Match host pico,*.qbt.cluster exec "timeout 1 bash -c '</dev/tcp/10.10.10.100/22' 2>/dev/null"
   ProxyJump none
 
@@ -87,6 +93,9 @@ Match host pico,*.qbt.cluster
   ProxyJump parsifal
 
 Host pico pico.qbt.cluster gitlab.qbt.cluster
+  HostName 10.10.10.100
+
+Host gitlab.qbt.cluster
   HostName 10.10.10.100
 
 Host pico *.qbt.cluster
