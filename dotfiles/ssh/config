@@ -150,6 +150,12 @@ Host pico
   HostName 10.10.10.100
   ProxyJump parsifal
 
+Host pico-claude
+  HostName 10.10.10.100
+  ControlMaster auto
+  ControlPath /tmp/pico-ctrl.sock
+  ControlPersist 6h
+
 Host pico2
   HostName pico2.qbt.cluster
   ProxyJump parsifal
