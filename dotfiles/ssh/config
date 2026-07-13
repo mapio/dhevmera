@@ -93,7 +93,7 @@ Host pico pico.qbt.cluster gitlab.qbt.cluster
 
 Host pico *.qbt.cluster
   ControlMaster auto
-  ControlPath /tmp/ctrl-%r@%h.sock
+  ControlPath ~/.ssh/sockets/%r@%h
   ControlPersist 6h
 
 Host minersp

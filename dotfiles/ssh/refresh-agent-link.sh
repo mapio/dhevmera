@@ -6,6 +6,8 @@
 # agent (no /tmp/ssh-*/ forwarded sockets to find).
 set -u
 
+mkdir -p -m 700 ~/.ssh/sockets
+
 LINK=~/.ssh/agent-link
 
 if [ -S "$LINK" ] && SSH_AUTH_SOCK="$LINK" ssh-add -l >/dev/null 2>&1; then
