@@ -104,6 +104,7 @@ _install $DOTFILES/gnupg/gpg.conf $HOME/.gnupg/gpg.conf
 
 _install $DOTFILES/ssh/config $HOME/.ssh/config
 _install $DOTFILES/ssh/id_rsa.pub $HOME/.ssh/id_rsa.pub
+_install $DOTFILES/ssh/refresh-agent-link.sh $HOME/.ssh/refresh-agent-link.sh
 
 _install $DOTFILES/misc/direnvrc $HOME/.config/direnv/direnvrc
 _install $DOTFILES/misc/tmux.conf $HOME/.tmux.conf

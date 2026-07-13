@@ -39,21 +39,9 @@ Host fnano
 
 # scythe
 
-Host reaper-admin
+Host reaper
   HostName reaper.srv.di.unimi.it
   User scythe-dev
-
-Host reaper-tester
-  User scythe-dev
-  HostName reaper.srv.di.unimi.it
-  IdentityFile ~/.ssh/id_rsa_reaper-tester
-  IdentitiesOnly yes
-
-Host reaper-prog2ese
-  User scythe-dev
-  HostName reaper.srv.di.unimi.it
-  IdentityFile ~/.ssh/id_rsa_reaper-prog2ese
-  IdentitiesOnly yes
 
 # salamacchine
 
@@ -86,79 +74,27 @@ Host s2
 Host s3
   HostName s3.law.di.unimi.it
 
-# Naicons
-
-Host naicons-nas
-  HostName 192.168.33.22
-  User MassimoSantini
-  Port 10022
-
-Host naicons-h
-  HostName 192.168.33.32
-  User idrogeno
-
-Host naicons-e
-  HostName 192.168.33.31
-  User elio
-
-Host snaicons-h
-  HostName 192.168.33.32
-  User soupy
-
-Host snaicons-e
-  HostName 192.168.33.31
-  User soupy
-
-Host dnaicons-h
-  HostName 192.168.33.32
-  User devel
-
-Host dnaicons-e
-  HostName 192.168.33.31
-  User devel
-
-Host naicons-thermo
-  HostName 192.168.33.147
-  User COMPUTER
-  #Password thermo
-
-Host naicons-indaco
-  User matteo.simone.est
-  HostName login.indaco.unimi.it
-  IdentityFile ~/.ssh/id_naicons-indaco
-  #Password 145811vale
-  #ControlMaster auto
-  #ControlPath ~/.ssh/sockets/%r@%h-%p
-  #ControlPersist 10m
-
-# remarkable2
-
-Host rem
-  User root
-  HostName 10.11.99.1
-
 # qbt
 
 Host parsifal
-  HostName parsifal.law.di.unimi.it
+  HostName 159.149.133.232
 
-Host gitlab.qbt.cluster
-  HostName 10.10.10.100
+Match exec "~/.ssh/refresh-agent-link.sh"
+  IdentityAgent ~/.ssh/agent-link
+
+Match host pico,*.qbt.cluster exec "timeout 1 bash -c '</dev/tcp/10.10.10.100/22' 2>/dev/null"
+  ProxyJump none
+
+Match host pico,*.qbt.cluster
   ProxyJump parsifal
 
-Host pico
+Host pico pico.qbt.cluster gitlab.qbt.cluster
   HostName 10.10.10.100
-  ProxyJump parsifal
 
-Host pico-claude
-  HostName 10.10.10.100
+Host pico *.qbt.cluster
   ControlMaster auto
-  ControlPath /tmp/pico-ctrl.sock
+  ControlPath /tmp/ctrl-%r@%h.sock
   ControlPersist 6h
-
-Host pico2
-  HostName pico2.qbt.cluster
-  ProxyJump parsifal
 
 Host minersp
   User massimo
