@@ -1,5 +1,3 @@
-#PubkeyAcceptedKeyTypes ssh-dss
-
 ForwardAgent yes
 ForwardX11 no
 ForwardX11Trusted yes
@@ -11,6 +9,9 @@ NoHostAuthenticationForLocalhost yes
 StrictHostKeyChecking no
 UserKnownHostsFile /dev/null
 LogLevel ERROR
+
+Match exec "~/.ssh/refresh-agent-link.sh"
+  IdentityAgent ~/.ssh/agent-link
 
 # mie
 
@@ -78,9 +79,6 @@ Host s3
 
 Host parsifal
   HostName 159.149.133.232
-
-Match exec "~/.ssh/refresh-agent-link.sh"
-  IdentityAgent ~/.ssh/agent-link
 
 Match host pico,*.qbt.cluster exec "timeout 1 bash -c '</dev/tcp/10.10.10.100/22' 2>/dev/null"
   ProxyJump none
