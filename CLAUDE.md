@@ -102,6 +102,12 @@ accepted costs: sudo is required, and none of this works on Termux.
 
 ## Gotchas
 
+- **Vendor installers must never be allowed to edit the shell rc files.** `~/.bashrc` and
+  `~/.bash_profile` are symlinks into `dotfiles/shell/`, so any installer that "adds itself
+  to your PATH" silently rewrites the *shared* config for every host. `45-rust.sh` passes
+  `--no-modify-path` for exactly this reason — without it rustup appended a redundant
+  source line and mangled the existing conditional into a dangling `&&`, which swallowed
+  the following `export GPG_TTY`. Check any new fragment for the equivalent flag.
 - **`dotfiles/ssh/config` block order is load-bearing.** `Host *` must stay last, and the
   `Match host pico,*.qbt.cluster` direct-reachability probe must precede the `ProxyJump
   parsifal` fallback. Several commits exist purely to move blocks.
