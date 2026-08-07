@@ -128,6 +128,11 @@ _install $DOTFILES/misc/wezterm.lua $HOME/.config/wezterm/wezterm.lua
 _install $DOTFILES/gh/config.yml $HOME/.config/gh/config.yml
 
 _install $DOTFILES/glab/aliases.yml $HOME/.config/glab-cli/aliases.yml
+# glab refuses to start unless its config files are mode 600, and since these are symlinks
+# the mode that counts is the one on the repo file. git records only the executable bit, so
+# a fresh clone checks this out 644 and glab breaks on that host - set it explicitly here
+# rather than relying on the checkout. Harmless to re-run: git will not see the change.
+$RUN chmod 600 "$DOTFILES/glab/aliases.yml"
 
 _install $DOTFILES/qbt/gitlab-qbt-cluster.crt $HOME/.config/qbt/gitlab-qbt-cluster.crt
 

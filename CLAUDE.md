@@ -120,8 +120,11 @@ accepted costs: sudo is required, and none of this works on Termux.
   leaving the tree permanently dirty. Version bumps come from `50-glab.sh`.
 - **`glab` refuses to start unless its config files are mode 600**, and it says so about
   the path in `~/.config/glab-cli/`. Because those are symlinks, the mode that matters is
-  the one on the file *in this repo* — so `dotfiles/glab/aliases.yml` is 600 even though
-  every other file under `dotfiles/` is world-readable. Do not "fix" it.
+  the one on the file *in this repo*. **git records only the executable bit**, so chmodding
+  the file locally does not travel — a fresh clone lands 644 and glab breaks on that host.
+  `install-dotfiles` therefore chmods `dotfiles/glab/aliases.yml` to 600 explicitly; the
+  change is invisible to git, so it never dirties the tree. `secrets/config/glab-config.yml`
+  needs no such handling: `unpack-secrets` already does `chmod -R 700`.
 - **`glab`'s `ca_cert` is an absolute `/home/santini/...` path** — glab does no `~`
   expansion, so it breaks on Termux, where `$HOME` differs. Known, unfixed.
 - Only `gitlab.qbt.cluster` is authenticated; the `gitlab.com` host entry has always had an
