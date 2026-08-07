@@ -40,15 +40,21 @@ not (`glab`: one `config.yml` carrying both preferences and tokens).
 `secrets/` is a **separate git repo**, gitignored by the parent, with **no remote**. It
 travels as an encrypted self-extractor:
 
-```
+```text
 pack-secrets      # tar | gpg --symmetric AES256/OCB  ->  scripts/unpack-secrets
 publish-secrets   # rclone copy that script to od:Archive/Items/
+fetch-secrets     # the inverse: rclone copy it back down onto a new host
 unpack-secrets    # prompts for the passphrase, extracts, chmod -R 700
 ```
 
-`scripts/unpack-secrets` is generated and gitignored, and `pack-secrets` refuses to
-overwrite an existing one — delete it first. After changing anything under `secrets/`,
-commit there, then re-pack and re-publish, or new hosts get the old snapshot.
+`pack-secrets` and `fetch-secrets` both **refuse to overwrite** an existing
+`scripts/unpack-secrets` — delete it first. That is deliberate on the fetch side too: it
+stops a local pack you have not published yet from being replaced by the older copy on the
+remote. `unpack-secrets` likewise refuses when `secrets/` already exists, so refreshing an
+existing host means moving the old directory aside first, not just re-running it.
+
+`scripts/unpack-secrets` is generated and gitignored. After changing anything under
+`secrets/`, commit there, then re-pack and re-publish, or new hosts get the old snapshot.
 
 Env-var secrets live in `secrets/config/bash_secrets`, sourced by `shell/bash_profile`.
 
@@ -75,7 +81,7 @@ Bootstrap chain: `deploy-server` → `hcloud server create --user-data cloud/clo
 Three buckets. Pick by **how the tool is distributed**, not by preference:
 
 | bucket | rule | examples |
-|---|---|---|
+| --- | --- | --- |
 | `/usr` | available as an APT package from a public repo that standard tools can add | `tzdata`, `nodejs`, `docker-ce`, `gh`, `tailscale` |
 | `/usr/local` | needs sudo, but is **not** APT-packaged anywhere usable | `starship`, `glab`, `rclone`, VS Code CLI, `devcontainer` |
 | `$HOME` | user-scoped, or manages its own toolchain and cannot be system-installed | `rustup` → `.cargo`, SDKMAN! → `.sdkman` |
