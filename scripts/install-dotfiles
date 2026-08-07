@@ -76,11 +76,14 @@ _install() {
 if [ -d $SECRETS ]; then
   log "Installing secrets from '$SECRETS'"
   _install $SECRETS/ssh/id_rsa $HOME/.ssh/id_rsa
+  _install $SECRETS/ssh/id_ed25519_qbt_sync $HOME/.ssh/id_ed25519_qbt_sync
   _install $SECRETS/config/bash_secrets $HOME/.bash_secrets
   _install $SECRETS/config/googleauth.json $HOME/.secrets.json
   _install $SECRETS/config/hcloud-cli.toml $HOME/.config/hcloud/cli.toml
   _install $SECRETS/config/pypirc $HOME/.pypirc
   _install $SECRETS/config/rclone.conf $HOME/.config/rclone/rclone.conf
+  _install $SECRETS/config/gh-hosts.yml $HOME/.config/gh/hosts.yml
+  _install $SECRETS/config/glab-config.yml $HOME/.config/glab-cli/config.yml
   _install $SECRETS/gnupg/openpgp-revocs.d $HOME/.gnupg/openpgp-revocs.d
   _install $SECRETS/gnupg/private-keys-v1.d $HOME/.gnupg/private-keys-v1.d
   _install $SECRETS/gnupg/pubring.kbx $HOME/.gnupg/pubring.kbx
@@ -104,6 +107,10 @@ _install $DOTFILES/gnupg/gpg.conf $HOME/.gnupg/gpg.conf
 
 _install $DOTFILES/ssh/config $HOME/.ssh/config
 _install $DOTFILES/ssh/id_rsa.pub $HOME/.ssh/id_rsa.pub
+# Dedicated restricted key: svm's cron uses it to reach the 'parsifal-sync' Host alias,
+# which forces qbt-sync-wrapper.sh on parsifal (read-only rsync of qbt-repos). It carries
+# no passphrase because cron cannot answer a prompt, hence the private half in secrets/.
+_install $DOTFILES/ssh/id_ed25519_qbt_sync.pub $HOME/.ssh/id_ed25519_qbt_sync.pub
 _install $DOTFILES/ssh/refresh-agent-link.sh $HOME/.ssh/refresh-agent-link.sh
 
 _install $DOTFILES/misc/direnvrc $HOME/.config/direnv/direnvrc
@@ -117,5 +124,36 @@ _install $DOTFILES/vscode/argv.json $HOME/.vscode/argv.json
 _install $DOTFILES/vscode/settings.json $HOME/.config/Code/User/settings.json
 
 _install $DOTFILES/misc/wezterm.lua $HOME/.config/wezterm/wezterm.lua
+
+_install $DOTFILES/gh/config.yml $HOME/.config/gh/config.yml
+
+_install $DOTFILES/glab/aliases.yml $HOME/.config/glab-cli/aliases.yml
+
+_install $DOTFILES/qbt/gitlab-qbt-cluster.crt $HOME/.config/qbt/gitlab-qbt-cluster.crt
+
+# The QBT GitLab is behind a self-signed certificate, so glab needs a CA bundle that
+# trusts it *in addition to* the public roots (ca_cert replaces the system pool rather
+# than extending it). Generate that bundle instead of committing a 184K snapshot of
+# Ubuntu's CA store, which would only go stale.
+
+SYSTEM_CA=/etc/ssl/certs/ca-certificates.crt
+QBT_CA_BUNDLE=$HOME/.config/qbt/ca-bundle.crt
+
+log "Generating QBT CA bundle"
+
+if [ -r "$SYSTEM_CA" ]; then
+  if [ ! -d "$(dirname $QBT_CA_BUNDLE)" ]; then
+    $RUN mkdir -p -m 700 "$(dirname $QBT_CA_BUNDLE)"
+  fi
+  $RUN rm -f "$QBT_CA_BUNDLE"
+  if [ -z "$RUN" ]; then
+    cat "$SYSTEM_CA" "$DOTFILES/qbt/gitlab-qbt-cluster.crt" > "$QBT_CA_BUNDLE"
+  else
+    $RUN cat "$SYSTEM_CA" "$DOTFILES/qbt/gitlab-qbt-cluster.crt" ">" "$QBT_CA_BUNDLE"
+  fi
+  ok "generated: $QBT_CA_BUNDLE"
+else
+  warn "system CA bundle '$SYSTEM_CA' not found, skipping QBT CA bundle generation"
+fi
 
 touch "$HOME/.install-dotfiles.complete"
