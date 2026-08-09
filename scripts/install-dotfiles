@@ -136,6 +136,9 @@ $RUN chmod 600 "$DOTFILES/glab/aliases.yml"
 
 _install $DOTFILES/qbt/gitlab-qbt-cluster.crt $HOME/.config/qbt/gitlab-qbt-cluster.crt
 
+_install $DOTFILES/systemd/backup-cloud.service $HOME/.config/systemd/user/backup-cloud.service
+_install $DOTFILES/systemd/backup-cloud.timer $HOME/.config/systemd/user/backup-cloud.timer
+
 # The QBT GitLab is behind a self-signed certificate, so glab needs a CA bundle that
 # trusts it *in addition to* the public roots (ca_cert replaces the system pool rather
 # than extending it). Generate that bundle instead of committing a 184K snapshot of

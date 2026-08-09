@@ -32,8 +32,8 @@ currently the QBT CA bundle (below). Keep those separated by their own `log` lin
 ## Public vs secret is the routing rule
 
 **Does the file contain a credential?** If no, it goes in `dotfiles/<topic>/` (topics:
-`git`, `gh`, `glab`, `gnupg`, `misc`, `python`, `qbt`, `shell`, `ssh`, `vscode`). If yes,
-it goes in `secrets/config/`. Files that mix the two get split when the tool allows it
+`git`, `gh`, `glab`, `gnupg`, `misc`, `python`, `qbt`, `shell`, `ssh`, `systemd`, `vscode`).
+If yes, it goes in `secrets/config/`. Files that mix the two get split when the tool allows it
 (`gh`: `config.yml` public, `hosts.yml` secret) and go wholly into `secrets/` when it does
 not (`glab`: one `config.yml` carrying both preferences and tokens).
 
@@ -150,3 +150,10 @@ accepted costs: sudo is required, and none of this works on Termux.
 - `dotfiles/git/gitconfig` defines an unused-in-this-repo `gitgpg` clean/smudge filter
   bound to `*.gitgpg` by `gitattributes_global` — an alternative to `secrets/` for
   committing an encrypted file into the main repo.
+- **`install-dotfiles` only symlinks `dotfiles/systemd/*` into `~/.config/systemd/user/`;
+  it does not reload or enable anything.** After adding or changing a unit there, run
+  `systemctl --user daemon-reload` and `systemctl --user enable --now <name>.timer`
+  yourself, per host — same spirit as the crontab entries, which this repo also never
+  scripts. A `--user` timer only fires on schedule while logged in unless lingering is on
+  (`loginctl enable-linger santini`); `backup-cloud.timer` (replacing the old
+  `backup-cloud` cron line) relies on that being enabled.
