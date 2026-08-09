@@ -107,9 +107,10 @@ _install $DOTFILES/gnupg/gpg.conf $HOME/.gnupg/gpg.conf
 
 _install $DOTFILES/ssh/config $HOME/.ssh/config
 _install $DOTFILES/ssh/id_rsa.pub $HOME/.ssh/id_rsa.pub
-# Dedicated restricted key: svm's cron uses it to reach the 'parsifal-sync' Host alias,
-# which forces qbt-sync-wrapper.sh on parsifal (read-only rsync of qbt-repos). It carries
-# no passphrase because cron cannot answer a prompt, hence the private half in secrets/.
+# Dedicated restricted key: svm's parsifal-sync.timer uses it to reach the 'parsifal-sync'
+# Host alias, which forces qbt-sync-wrapper.sh on parsifal (read-only rsync of qbt-repos).
+# It carries no passphrase because unattended runs can't answer a prompt, hence the private
+# half in secrets/.
 _install $DOTFILES/ssh/id_ed25519_qbt_sync.pub $HOME/.ssh/id_ed25519_qbt_sync.pub
 _install $DOTFILES/ssh/refresh-agent-link.sh $HOME/.ssh/refresh-agent-link.sh
 
@@ -138,6 +139,8 @@ _install $DOTFILES/qbt/gitlab-qbt-cluster.crt $HOME/.config/qbt/gitlab-qbt-clust
 
 _install $DOTFILES/systemd/backup-cloud.service $HOME/.config/systemd/user/backup-cloud.service
 _install $DOTFILES/systemd/backup-cloud.timer $HOME/.config/systemd/user/backup-cloud.timer
+_install $DOTFILES/systemd/parsifal-sync.service $HOME/.config/systemd/user/parsifal-sync.service
+_install $DOTFILES/systemd/parsifal-sync.timer $HOME/.config/systemd/user/parsifal-sync.timer
 
 # The QBT GitLab is behind a self-signed certificate, so glab needs a CA bundle that
 # trusts it *in addition to* the public roots (ca_cert replaces the system pool rather

@@ -156,4 +156,5 @@ accepted costs: sudo is required, and none of this works on Termux.
   yourself, per host — same spirit as the crontab entries, which this repo also never
   scripts. A `--user` timer only fires on schedule while logged in unless lingering is on
   (`loginctl enable-linger santini`); `backup-cloud.timer` (replacing the old
-  `backup-cloud` cron line) relies on that being enabled.
+  `backup-cloud` cron line) and `parsifal-sync.timer` (replacing the old `parsifal-sync`
+  cron line) both rely on that being enabled.
