@@ -1,0 +1,14 @@
+[Unit]
+Description=ytwit Telegram bot
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=/chome/santini/Activities/Programming/ytwit
+ExecStart=/home/santini/.local/bin/uv run ytwit-bot
+Restart=on-failure
+RestartSec=10
+
+[Install]
+WantedBy=default.target
