@@ -6,6 +6,7 @@ Wants=network-online.target
 [Service]
 Type=simple
 WorkingDirectory=/chome/santini/Activities/Programming/ytwit
+Environment=PATH=/home/santini/.local/bin:/usr/local/bin:/usr/bin:/bin
 ExecStart=/home/santini/.local/bin/uv run ytwit-bot
 Restart=on-failure
 RestartSec=10
