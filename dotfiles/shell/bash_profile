@@ -46,6 +46,9 @@ export PYTHONIOENCODING=utf8 # for stdout / stderr
 
 path+=($HOME/bin)
 path+=($HOME/.local/bin)
+
+# bun
+
 path+=($HOME/.bun/bin)
 
 # path, man and info setup

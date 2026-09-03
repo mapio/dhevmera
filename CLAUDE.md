@@ -84,7 +84,7 @@ Three buckets. Pick by **how the tool is distributed**, not by preference:
 | --- | --- | --- |
 | `/usr` | available as an APT package from a public repo that standard tools can add | `tzdata`, `nodejs`, `docker-ce`, `gh`, `tailscale` |
 | `/usr/local` | needs sudo, but is **not** APT-packaged anywhere usable | `starship`, `glab`, `rclone`, VS Code CLI, `devcontainer` |
-| `$HOME` | user-scoped, or manages its own toolchain and cannot be system-installed | `rustup` → `.cargo`, SDKMAN! → `.sdkman` |
+| `$HOME` | user-scoped, or manages its own toolchain and cannot be system-installed | `rustup` → `.cargo`, SDKMAN! → `.sdkman`, `bun` → `.bun` |
 
 The rule that actually matters is the negative one: **nothing that apt does not own may be
 written into `/usr`.** A binary dropped into `/usr/bin` is invisible to `dpkg`, and the
@@ -113,7 +113,10 @@ accepted costs: sudo is required, and none of this works on Termux.
   to your PATH" silently rewrites the *shared* config for every host. `45-rust.sh` passes
   `--no-modify-path` for exactly this reason — without it rustup appended a redundant
   source line and mangled the existing conditional into a dangling `&&`, which swallowed
-  the following `export GPG_TTY`. Check any new fragment for the equivalent flag.
+  the following `export GPG_TTY`. Check any new fragment for the equivalent flag — and when
+  there is none, for another way to reach the installer's no-op branch: `60-bun.sh` runs
+  bun's installer with `SHELL=/bin/sh`, because it switches on `$(basename "$SHELL")` and
+  only its bash/zsh/fish branches write to an rc file.
 - **`dotfiles/ssh/config` block order is load-bearing.** `Host *` must stay last, and the
   `Match host pico,*.qbt.cluster` direct-reachability probe must precede the `ProxyJump
   parsifal` fallback. Several commits exist purely to move blocks.
