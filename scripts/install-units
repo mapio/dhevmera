@@ -89,9 +89,12 @@ for tag in "${TAGS[@]}"; do
   done
 done
 
+# No early exit when a tag holds no units: that is a legitimate state - a host declaring a
+# tag it has not populated yet - and such a host still needs the prune below to clear links
+# left from when it did carry some.
+
 if [ ${#found[@]} -eq 0 ]; then
-  warn "tags ${TAGS[*]} hold no units - nothing to install"
-  exit 0
+  warn "tags ${TAGS[*]} hold no units - nothing to install, pruning only"
 fi
 
 for unit in "${found[@]}"; do
@@ -155,6 +158,12 @@ fi
 # install-dotfiles never reloads or enables anything, and neither does this: enabling has
 # side effects, and whether a --user unit should survive logout is a separate per-host
 # decision (loginctl enable-linger). Print what is left to do rather than guessing.
+
+if [ ${#found[@]} -eq 0 ]; then
+  log "No units for this host"
+  touch "$HOME/.install-units.complete"
+  exit 0
+fi
 
 log "Linked ${#found[@]} unit(s). Enabling is manual:"
 

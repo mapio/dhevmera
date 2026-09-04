@@ -1,0 +1,5 @@
+This host carries no systemd --user units yet.
+
+The directory exists so that 'parsifal' is a known tag: install-units treats an
+unknown tag as fatal, to catch typos in ~/.dhevmera-tags. Drop unit files here to
+give the tag content; this placeholder can go once there is a real one.
