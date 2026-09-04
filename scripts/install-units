@@ -1,0 +1,121 @@
+#!/usr/bin/env bash
+
+set -eo pipefail
+
+# Links this host's systemd --user units into ~/.config/systemd/user/.
+#
+# Unlike the tool configs install-dotfiles deploys, which are wanted on every host this
+# repo is cloned onto, a service belongs only to a host that has what it runs -
+# backup-cloud's ExecStart and ytwit-bot's WorkingDirectory are both under /chome, which
+# exists only on one machine.
+#
+# Units are therefore filed by TAG: dotfiles/systemd/<tag>/. A tag is a role, not a
+# hostname - 'svm' is an ssh alias, and these hosts are ephemeral enough that their real
+# hostnames are not worth encoding. A host declares which tags it carries, and may carry
+# several; this script installs the union of their directories.
+#
+#   install-units [--dry-run] [tag...]
+#
+# Tags come from the arguments, or - with none - from ~/.dhevmera-tags, one per line,
+# blank lines and # comments ignored. That file is host-local state and is not in this
+# repo: it is the one thing that cannot roam, since it is precisely what distinguishes
+# this host from the others.
+#
+# Linking is all this does. Enabling stays manual and per host, deliberately: see the
+# reminder printed at the end.
+
+# should dry run?
+
+if [ "${1:-}" = "--dry-run" ]; then
+  RUN=echo
+  shift
+else
+  RUN=
+fi
+
+# Keep a log of the setup process
+
+LOGFILE="$HOME/.install-units.log"
+exec 3>&1
+exec > >(tee -a "$LOGFILE") 2>&1
+
+source "$(dirname "${BASH_SOURCE[0]}")/install-common.sh"
+
+UNITS="$(cd "$(dirname "${BASH_SOURCE[0]}")/../dotfiles/systemd" && pwd)"
+DEST="$HOME/.config/systemd/user"
+TAGFILE="$HOME/.dhevmera-tags"
+
+# which tags does this host carry?
+
+if [ $# -gt 0 ]; then
+  TAGS=("$@")
+  TAGSRC="the command line"
+elif [ -r "$TAGFILE" ]; then
+  mapfile -t TAGS < <(sed -e 's/#.*//' -e '/^[[:space:]]*$/d' -e 's/[[:space:]]//g' "$TAGFILE")
+  TAGSRC="$TAGFILE"
+else
+  log "No tags for this host"
+  warn "no tags given and no '$TAGFILE'"
+  warn "tags available: $(cd "$UNITS" && echo */ | tr -d /)"
+  warn "declare this host's tags in '$TAGFILE', one per line, or pass them as arguments"
+  exit 0
+fi
+
+if [ ${#TAGS[@]} -eq 0 ]; then
+  log "No tags for this host"
+  warn "'$TAGFILE' declares no tags"
+  exit 0
+fi
+
+log "Installing systemd --user units for tags: ${TAGS[*]} (from $TAGSRC)"
+
+# Collect first, install second, so an unknown tag or a collision is reported before
+# anything on disk has been replaced.
+
+shopt -s nullglob
+found=()
+
+for tag in "${TAGS[@]}"; do
+  if [ ! -d "$UNITS/$tag" ]; then
+    die "unknown tag '$tag': no directory '$UNITS/$tag'"
+  fi
+  for unit in "$UNITS/$tag"/*; do
+    for seen in "${found[@]}"; do
+      if [ "$(basename "$seen")" = "$(basename "$unit")" ]; then
+        die "'$(basename "$unit")' appears in more than one tag ($seen and $unit)"
+      fi
+    done
+    found+=("$unit")
+  done
+done
+
+if [ ${#found[@]} -eq 0 ]; then
+  warn "tags ${TAGS[*]} hold no units - nothing to install"
+  exit 0
+fi
+
+for unit in "${found[@]}"; do
+  _install "$unit" "$DEST/$(basename "$unit")"
+done
+
+# install-dotfiles never reloads or enables anything, and neither does this: enabling has
+# side effects, and whether a --user unit should survive logout is a separate per-host
+# decision (loginctl enable-linger). Print what is left to do rather than guessing.
+
+log "Linked ${#found[@]} unit(s). Enabling is manual:"
+
+echo "  systemctl --user daemon-reload"
+
+# Only units carrying an [Install] section can be enabled at all - backup-cloud.service
+# and parsifal-sync.service deliberately have none, because it is their .timer that gets
+# enabled and they are pulled in as its target.
+
+for unit in "${found[@]}"; do
+  if grep -q '^\[Install\]' "$unit"; then
+    echo "  systemctl --user enable --now $(basename "$unit")"
+  fi
+done
+
+echo "  loginctl enable-linger $USER    # if these must run while logged out"
+
+touch "$HOME/.install-units.complete"

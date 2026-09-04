@@ -21,57 +21,11 @@ LOGFILE="$HOME/.install-dotfiles.log"
 exec 3>&1
 exec > >(tee -a "$LOGFILE") 2>&1
 
-# Define helper function for output
+# Helpers and the _install primitive are shared with install-units
 
-if [ -t 3 ]; then
-  RED='\033[0;31m'
-  GREEN='\033[0;32m'
-  YELLOW='\033[0;33m'
-  BLUE='\033[0;34m'
-  BOLD='\033[1m'
-  RESET='\033[0m'
-else
-  RED=''; GREEN=''; YELLOW=''; BLUE=''; BOLD=''; RESET=''
-fi
-
-log()      { printf "\n%b\n\n" "${BLUE}${BOLD}==> $*${RESET}"; }
-ok()       { printf "%b\n" "${GREEN}✔ $*${RESET}"; }
-warn()     { printf "%b\n" "${YELLOW}⚠ $*${RESET}"; }
-die()      { printf "%b\n" "${RED}✖ $*${RESET}" >&2; exit 1; }
-
-# Helper functions
+source "$(dirname "${BASH_SOURCE[0]}")/install-common.sh"
 
 DOTFILES="$(cd "$(dirname "${BASH_SOURCE[0]}")/../dotfiles" && pwd)"
-
-_install() {
-  src="$1"
-  dst="$2"
-
-  if [ -z "$src" ] || [ -h "$src" ] || { [ ! -f "$src" ] && [ ! -d "$src" ]; } || [ ! -r "$src" ]; then
-    die "source '$src' must be specified and be a regular readable file or directory"
-  fi
-
-  if [ -z "$dst" ]; then
-    die "destination '$dst' must be specified"
-  fi
-
-  if [ -e "$dst" -a ! -h "$dst" ]; then
-    warn "destination '$dst' will be replaced"
-  fi
-
-  dstdir=$(dirname "$dst")
-  if [ ! -d "$dstdir" ]; then
-    warn "creating diretory '$dstdir'"
-    $RUN mkdir -p "$dstdir"
-    $RUN chmod -R 700 "$dstdir"
-  fi
-
-  $RUN rm -rf "$dst"
-  $RUN ln -s $(realpath $src) "$dst"
-  
-  ok "installed: $dst"
-
-}
 
 if [ -d $SECRETS ]; then
   log "Installing secrets from '$SECRETS'"
@@ -137,10 +91,8 @@ $RUN chmod 600 "$DOTFILES/glab/aliases.yml"
 
 _install $DOTFILES/qbt/gitlab-qbt-cluster.crt $HOME/.config/qbt/gitlab-qbt-cluster.crt
 
-_install $DOTFILES/systemd/backup-cloud.service $HOME/.config/systemd/user/backup-cloud.service
-_install $DOTFILES/systemd/backup-cloud.timer $HOME/.config/systemd/user/backup-cloud.timer
-_install $DOTFILES/systemd/parsifal-sync.service $HOME/.config/systemd/user/parsifal-sync.service
-_install $DOTFILES/systemd/parsifal-sync.timer $HOME/.config/systemd/user/parsifal-sync.timer
+# systemd --user units are NOT installed here: they are per-host, so they live in
+# dotfiles/systemd/<tag>/ and are linked by install-units, which run separately.
 
 # The QBT GitLab is behind a self-signed certificate, so glab needs a CA bundle that
 # trusts it *in addition to* the public roots (ca_cert replaces the system pool rather

@@ -1,11 +1,15 @@
 # Δημέρα
 
-Config that roams across ephemeral dev boxes. Two entry points: `scripts/install-software`
-provisions the machine, `scripts/install-dotfiles` links this repo's files into `$HOME`.
+Config that roams across ephemeral dev boxes. Three entry points: `scripts/install-software`
+provisions the machine, `scripts/install-dotfiles` links this repo's files into `$HOME`, and
+`scripts/install-units` links the systemd `--user` units this particular host should run.
+The first two are host-agnostic; the third is not, which is the whole reason it is separate.
 
 ## Deployment is explicit symlinks, not a convention
 
-`scripts/install-dotfiles` is a hand-written bash script. Its one primitive is
+`scripts/install-dotfiles` is a hand-written bash script. Its one primitive — shared with
+`install-units` via `scripts/install-common.sh`, so the semantics below cannot drift between
+them — is
 
 ```bash
 _install <src> <dst>    # rm -rf "$dst" && ln -s "$(realpath src)" "$dst"
@@ -153,11 +157,26 @@ accepted costs: sudo is required, and none of this works on Termux.
 - `dotfiles/git/gitconfig` defines an unused-in-this-repo `gitgpg` clean/smudge filter
   bound to `*.gitgpg` by `gitattributes_global` — an alternative to `secrets/` for
   committing an encrypted file into the main repo.
-- **`install-dotfiles` only symlinks `dotfiles/systemd/*` into `~/.config/systemd/user/`;
-  it does not reload or enable anything.** After adding or changing a unit there, run
-  `systemctl --user daemon-reload` and `systemctl --user enable --now <name>.timer`
-  yourself, per host — same spirit as the crontab entries, which this repo also never
-  scripts. A `--user` timer only fires on schedule while logged in unless lingering is on
-  (`loginctl enable-linger santini`); `backup-cloud.timer` (replacing the old
-  `backup-cloud` cron line) and `parsifal-sync.timer` (replacing the old `parsifal-sync`
-  cron line) both rely on that being enabled.
+- **systemd units are per-host, and `install-dotfiles` does not touch them.** Every other
+  config here is wanted on every host that clones the repo; a service is not, because it
+  needs what it runs to exist — `backup-cloud`'s `ExecStart` and `ytwit-bot`'s
+  `WorkingDirectory` are both under `/chome`, present on one machine only. So units are
+  filed by **tag** in `dotfiles/systemd/<tag>/` and linked by `scripts/install-units`.
+  A tag is a *role*, not a hostname: `svm` is an ssh alias and not that box's real
+  hostname, and these hosts are ephemeral enough that hostnames are not worth encoding.
+  A host declares the tags it carries — possibly several, whose unit sets are unioned — in
+  `~/.dhevmera-tags`, one per line; `install-units [--dry-run] [tag...]` overrides that
+  from the command line. `~/.dhevmera-tags` is deliberately **not** in this repo: it is the
+  one piece of config that cannot roam, being precisely what tells this host from the rest.
+  An unknown tag, or one unit name claimed by two tags, is fatal — and checked before
+  anything on disk is replaced.
+- **`install-units` links only; it does not reload or enable anything.** After adding or
+  changing a unit, run `systemctl --user daemon-reload` and
+  `systemctl --user enable --now <name>.timer` yourself, per host — same spirit as the
+  crontab entries, which this repo also never scripts. The script prints the exact commands,
+  listing only units that carry an `[Install]` section: `backup-cloud.service` and
+  `parsifal-sync.service` have none on purpose, since it is their `.timer` that gets enabled
+  and they are pulled in as its target. A `--user` timer only fires on schedule while logged
+  in unless lingering is on (`loginctl enable-linger santini`); `backup-cloud.timer`
+  (replacing the old `backup-cloud` cron line) and `parsifal-sync.timer` (replacing the old
+  `parsifal-sync` cron line) both rely on that being enabled.
