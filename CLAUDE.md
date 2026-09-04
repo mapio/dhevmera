@@ -207,3 +207,20 @@ accepted costs: sudo is required, and none of this works on Termux.
   in unless lingering is on (`loginctl enable-linger santini`); `backup-cloud.timer`
   (replacing the old `backup-cloud` cron line) and `parsifal-sync.timer` (replacing the old
   `parsifal-sync` cron line) both rely on that being enabled.
+- **Never `systemctl --user disable` or `reenable` a unit this repo deploys — use plain
+  `enable`.** Everything `install-units` puts in `~/.config/systemd/user/` is a *linked*
+  unit (a symlink pointing outside the unit directories, which is why `is-enabled` reports
+  `linked` rather than `disabled` for the two oneshots). For a linked unit `disable` removes
+  **the symlink itself**, not merely the enablement, so `reenable` deletes the unit and then
+  fails to re-enable what is no longer there — leaving it neither linked nor enabled. This
+  happened on svm during the move to tags: `ytwit-bot.service`, `backup-cloud.timer` and
+  `parsifal-sync.timer` all lost their symlinks in one command. Recovery is `install-units`
+  followed by `systemctl --user enable <name>`. Note `disable` does *not* stop a running
+  unit, so the damage is silent until the next boot.
+- **`enable` writes `*.target.wants/<name>` pointing straight at the file in this repo**, not
+  at the copy in `~/.config/systemd/user/`. Those links are systemd's, outside what
+  `install-units` manages, so it cannot repair them: **moving a unit between tags, or any
+  change to its path in the repo, dangles the `.wants` link and needs a manual
+  `systemctl --user enable` afterwards.** `install-units` relinking the unit is not enough —
+  it fixes the entry in `~/.config/systemd/user/` while the enablement still points at the
+  old path. Check with `find ~/.config/systemd/user -xtype l`, which should print nothing.
