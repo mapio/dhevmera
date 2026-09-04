@@ -41,7 +41,7 @@ exec > >(tee -a "$LOGFILE") 2>&1
 
 source "$(dirname "${BASH_SOURCE[0]}")/install-common.sh"
 
-UNITS="$(cd "$(dirname "${BASH_SOURCE[0]}")/../dotfiles/systemd" && pwd)"
+UNITS="$(cd "$(dirname "${BASH_SOURCE[0]}")/../dotfiles/systemd" && pwd -P)"
 DEST="$HOME/.config/systemd/user"
 TAGFILE="$HOME/.dhevmera-tags"
 
@@ -97,6 +97,60 @@ fi
 for unit in "${found[@]}"; do
   _install "$unit" "$DEST/$(basename "$unit")"
 done
+
+# Prune units this host no longer claims - a unit dropped from the repo, or moved to a tag
+# this host does not carry. Three conditions before anything is removed, so the blast
+# radius is exactly "links this script itself created":
+#
+#   - it is a symlink; a regular file in there was put there by hand and is never touched
+#   - its target is inside dotfiles/systemd/, so units linked from elsewhere are left alone
+#   - its basename is not among the units just installed
+#
+# The target test is a string prefix on the raw link, not realpath, so a unit whose file
+# has already been deleted from the repo - a dangling link, the very case worth pruning -
+# is still recognised as ours.
+
+log "Pruning units no longer claimed by tags: ${TAGS[*]}"
+
+pruned=()
+
+for existing in "$DEST"/*; do
+
+  [ -h "$existing" ] || continue
+
+  target="$(readlink "$existing")"
+  case "$target" in
+    "$UNITS"/*) ;;
+    *) continue ;;
+  esac
+
+  keep=
+
+  for unit in "${found[@]}"; do
+    if [ "$(basename "$unit")" = "$(basename "$existing")" ]; then
+      keep=yes
+      break
+    fi
+  done
+
+  if [ -z "$keep" ]; then
+    $RUN rm -f "$existing"
+    ok "pruned: $existing"
+    pruned+=("$(basename "$existing")")
+  fi
+
+done
+
+if [ ${#pruned[@]} -eq 0 ]; then
+  ok "nothing to prune"
+else
+  # Removing the unit file does not undo a previous 'systemctl --user enable': that leaves
+  # its own link under *.target.wants/, which is systemd's to manage, not this script's.
+  warn "${#pruned[@]} unit(s) pruned may still be enabled; disable them explicitly:"
+  for name in "${pruned[@]}"; do
+    echo "  systemctl --user disable $name"
+  done
+fi
 
 # install-dotfiles never reloads or enables anything, and neither does this: enabling has
 # side effects, and whether a --user unit should survive logout is a separate per-host

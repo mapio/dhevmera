@@ -149,6 +149,15 @@ accepted costs: sudo is required, and none of this works on Termux.
 - Only `gitlab.qbt.cluster` is authenticated; the `gitlab.com` host entry has always had an
   empty token, so `glab auth status` exits non-zero with a 401 for it. Expected, not a
   regression.
+- **Unit files spell paths out physically, never through a symlink.** `parsifal-sync.service`
+  used to reach its script via `/home/santini/x/...`, but `~/x` is a symlink `mount-zfs`
+  creates pointing at `/chome/santini/x`, so the unit only worked once that script had run.
+  It now names `/chome/santini/x/...` directly. Same reasoning as `backup-cloud.service`,
+  which has always used `/chome/santini/dhevmera/scripts/backup-cloud` — on that host the
+  repo lives on the pool, and `mount-zfs` `rm -rf`s `$HOME/dhevmera`. For the same reason
+  `install-dotfiles` and `install-units` resolve their roots with `pwd -P`: `_install` links
+  `realpath` of the source, and a logical root would not match it if the repo were reached
+  through a symlink — which would silently defeat the prune's prefix test.
 - `~/.config/qbt/ca-bundle.crt` is **generated**, not linked: glab's `ca_cert` replaces the
   system trust pool instead of extending it, so the bundle must be the public roots plus
   `dotfiles/qbt/gitlab-qbt-cluster.crt`. Only the 2 KB leaf cert is committed.
@@ -170,6 +179,16 @@ accepted costs: sudo is required, and none of this works on Termux.
   one piece of config that cannot roam, being precisely what tells this host from the rest.
   An unknown tag, or one unit name claimed by two tags, is fatal — and checked before
   anything on disk is replaced.
+- **`install-units` prunes**, so dropping a unit from the repo or moving it to a tag this
+  host does not carry actually removes it from `~/.config/systemd/user/`. Three conditions
+  gate every removal, confining it to links the script itself made: the entry is a symlink
+  (a regular file there was hand-written and is never touched), its target is inside
+  `dotfiles/systemd/`, and its basename is not among the units just installed. The target
+  test is a string prefix on the raw link rather than `realpath`, so a unit already deleted
+  from the repo — a dangling link, precisely the case worth pruning — is still recognised.
+  Pruning does **not** undo a previous `enable`: that leaves its own link under
+  `*.target.wants/`, which is systemd's to manage, so the script prints the
+  `systemctl --user disable` lines instead of touching them.
 - **`install-units` links only; it does not reload or enable anything.** After adding or
   changing a unit, run `systemctl --user daemon-reload` and
   `systemctl --user enable --now <name>.timer` yourself, per host — same spirit as the

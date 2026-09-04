@@ -25,7 +25,7 @@ exec > >(tee -a "$LOGFILE") 2>&1
 
 source "$(dirname "${BASH_SOURCE[0]}")/install-common.sh"
 
-DOTFILES="$(cd "$(dirname "${BASH_SOURCE[0]}")/../dotfiles" && pwd)"
+DOTFILES="$(cd "$(dirname "${BASH_SOURCE[0]}")/../dotfiles" && pwd -P)"
 
 if [ -d $SECRETS ]; then
   log "Installing secrets from '$SECRETS'"
