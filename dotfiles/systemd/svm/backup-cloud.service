@@ -3,6 +3,6 @@ Description=Backup /chome/santini to OneDrive via restic
 
 [Service]
 Type=oneshot
-ExecStart=/chome/santini/dhevmera/scripts/backup-cloud
+ExecStart=/chome/santini/Activities/Programming/dhevmera/scripts/backup-cloud
 StandardOutput=append:/home/santini/backup-cloud.log
 StandardError=append:/home/santini/backup-cloud.log
