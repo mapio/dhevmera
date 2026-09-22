@@ -194,6 +194,10 @@ accepted costs: sudo is required, and none of this works on Termux.
   `OLD_GITHUB_TOKEN` is a deliberate rename: an exported `GITHUB_TOKEN` silently overrides
   `gh`'s stored credentials. `gh` and `glab` both authenticate from their own config files
   here, not from the environment.
+- **`VSCODE_TOKEN` in `bash_secrets` is dead weight** — `start-vscode` was its only reader
+  and went in f786ffd. Left in place on purpose: dropping it means a repack, publish, fetch
+  and unpack on every host, which is not worth doing for one dead line. Take it out with
+  the next change to `secrets/` that has to travel anyway.
 - **`glab`'s committed config keeps `check_update`, `show_whats_new`,
   `notify_skill_updates` and `telemetry` false.** That file is a symlink into the secrets
   repo, and each of those features writes a timestamp or version back into it on use,
