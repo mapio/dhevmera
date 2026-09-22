@@ -136,10 +136,17 @@ for host in "${hosts[@]}"; do
             pids=$(stale_masters "$host")
             [ -z "$pids" ] || kill -9 $pids 2>/dev/null || true
         fi
-        if ssh -S "$sock" -M -N -f "${extra_flags[@]}" "$host" && forward_up "$host"; then
+        # ssh reports a refused bind on stderr and carries on, so that is the signal
+        # that actually distinguishes our forward from someone else's listener. Retire
+        # the useless master too, or the next run finds it and calls it already up.
+        if err=$(ssh -S "$sock" -M -N -f "${extra_flags[@]}" "$host" 2>&1) &&
+           ! grep -qE "cannot listen to port|Address already in use" <<<"$err" &&
+           forward_up "$host"; then
             echo "  $label: started"
         else
+            [ -z "$err" ] || printf '%s\n' "$err" | sed 's/^/  /' >&2
             echo "  $label: FAILED$hint" >&2
+            ssh -S "$sock" -O exit "$host" >/dev/null 2>&1 || true
             status=1
         fi
     fi

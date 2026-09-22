@@ -173,6 +173,11 @@ accepted costs: sudo is required, and none of this works on Termux.
   starting one, and a master that fails the probe is retired on the next run rather than
   being left to look healthy forever. svm's tunnel is probed as a bound listener on svm
   rather than end to end, so a tablet with no `sshd` does not read as a broken forward.
+  The probe alone is not enough, though: it only proves *something* holds the port, and an
+  unrelated listener squatting 1080 satisfies it. What settles it is ssh's own stderr —
+  `Address already in use` / `cannot listen to port`, which it prints and then carries on
+  regardless — so that is what the start path greps for, and a master that trips it is
+  retired immediately rather than left for the next run to mistake for a healthy one.
 - **Do not put `GITHUB_TOKEN` or `GH_TOKEN` in `bash_secrets`.** The existing
   `OLD_GITHUB_TOKEN` is a deliberate rename: an exported `GITHUB_TOKEN` silently overrides
   `gh`'s stored credentials. `gh` and `glab` both authenticate from their own config files
