@@ -60,6 +60,16 @@ existing host means moving the old directory aside first, not just re-running it
 `scripts/unpack-secrets` is generated and gitignored. After changing anything under
 `secrets/`, commit there, then re-pack and re-publish, or new hosts get the old snapshot.
 
+**Check `git -C secrets status` on every host before packing, not just on the one you are
+publishing from.** `pack-secrets` tars the whole directory *including its `.git`*, so an
+unpack replaces the receiving host's secrets history wholesale — anything that host held
+and the snapshot does not is gone, uncommitted or not. The snapshot is only authoritative
+if it is a superset, and that is not automatic: on 2026-09-22 parsifal had
+`OPENROUTER_API_KEY` while svm had an uncommitted `[gd-carlotta]` rclone remote, so neither
+host could publish without destroying something. Reconcile onto one host first, then pack
+from it. Where the same key differs on both — an `[od]` token each host refreshed for
+itself — the later `expiry` in the token JSON is the one to keep.
+
 Env-var secrets live in `secrets/config/bash_secrets`, sourced by `shell/bash_profile`.
 
 ## Software fragments
