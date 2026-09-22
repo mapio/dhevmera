@@ -47,9 +47,11 @@ printf '%s' "$SSH_PASSPHRASE"
 EOF
 chmod 700 "$askpass"
 
-# lsof is not in a stock Termux, so fall back to fuser before giving up.
-listener_pids() {
-    lsof -ti "tcp:$1" -sTCP:LISTEN 2>/dev/null || fuser -n tcp "$1" 2>/dev/null || true
+# Android refuses /proc/net/tcp, so no port-to-pid lookup works in Termux -- not lsof,
+# fuser or netstat. Our own masters are visible to pgrep, which is what we actually need.
+# The ^ anchor matters: unanchored, this matches the shell running the script.
+stale_masters() {
+    pgrep -f "^ssh -S $CONTROL_DIR/$1 " || true
 }
 
 # ssh-add -l exits 0 once *any* identity is resident -- coarse, but enough to
@@ -85,52 +87,42 @@ for host in "${hosts[@]}"; do
     fi
 
     sock="$CONTROL_DIR/$host"
-    extra_flags=()
+    # ExitOnForwardFailure for every host: without it a -D or -R that cannot bind leaves
+    # a master that reports success and silently carries no forward.
+    extra_flags=(-o ExitOnForwardFailure=yes)
     label="agent"
-    local_port=
     hint=
     if [ "$host" = svm ]; then
         # svm only: it is the personal machine, and parsifal has other accounts
-        # that could reach a loopback port there. From anywhere else the tablet
-        # is reached by jumping through svm, which is what the tablet entry
-        # in dotfiles/ssh/config arranges. ExitOnForwardFailure so a port already
-        # held by an orphan fails loudly, rather than yielding a master with no
-        # tunnel in it.
-        extra_flags+=(-o ExitOnForwardFailure=yes -R "$REVERSE_PORT:localhost:$SSHD_PORT")
+        # that could reach a loopback port there. Everywhere else jumps through
+        # svm, which is what the tablet entry in dotfiles/ssh/config arranges.
+        extra_flags+=(-R "$REVERSE_PORT:localhost:$SSHD_PORT")
         label="$label+reverse:$REVERSE_PORT"
         hint=" (if $host:$REVERSE_PORT is held by an orphan: ssh $host fuser -k $REVERSE_PORT/tcp)"
     fi
     if [ "$host" = parsifal ]; then
         extra_flags+=(-D 1080)
-        local_port=1080
         label="$label+socks:1080"
+        hint=" (a stale listener on 1080 on this machine will do it)"
     fi
     if ssh -S "$sock" -O check "$host" >/dev/null 2>&1; then
         echo "  $label: already up"
     else
-        # The control socket didn't answer: either there was never one, or
-        # the master died without cleaning up (ssh crash, network drop, or
-        # this machine rebooted -- CONTROL_DIR survives a reboot even though
-        # every ssh process it pointed to does not). Either way, clear out
-        # whatever it left behind before trying to start a fresh master:
-        # a stale socket *file* makes the new master's bind() fail even
-        # though nothing is listening, and if the same master was holding a
-        # local forwarded port (e.g. -D 1080) as an orphaned/zombie process
-        # no longer reachable via the control socket, that port stays bound
-        # and blocks the new -D too.
+        # The control socket didn't answer: either there was never one, or the master
+        # died without cleaning up (ssh crash, network drop, or this machine rebooted --
+        # CONTROL_DIR survives a reboot even though every ssh process it pointed to does
+        # not). A stale socket *file* alone makes the new master's bind() fail, and a
+        # master that outlived its socket still holds whatever it forwarded, blocking the
+        # new -D or -R. Clear both before starting a fresh one.
         ssh -S "$sock" -O exit "$host" >/dev/null 2>&1 || true
         rm -f "$sock"
-        if [ -n "$local_port" ]; then
-            pids=$(listener_pids "$local_port")
-            if [ -n "$pids" ]; then
-                echo "  $label: clearing stale listener on port $local_port (pid $pids)" >&2
-                kill $pids 2>/dev/null || true
-                for _ in 1 2 3 4 5; do
-                    [ -n "$(listener_pids "$local_port")" ] || break
-                    sleep 1
-                done
-                kill -9 $pids 2>/dev/null || true
-            fi
+        pids=$(stale_masters "$host")
+        if [ -n "$pids" ]; then
+            echo "  $label: retiring orphaned master(s): $(echo $pids | tr '\n' ' ')" >&2
+            kill $pids 2>/dev/null || true
+            sleep 1
+            pids=$(stale_masters "$host")
+            [ -z "$pids" ] || kill -9 $pids 2>/dev/null || true
         fi
         if ssh -S "$sock" -M -N -f "${extra_flags[@]}" "$host"; then
             echo "  $label: started"
