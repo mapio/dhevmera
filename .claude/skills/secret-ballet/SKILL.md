@@ -1,9 +1,9 @@
 ---
-name: secrets
+name: secret-ballet
 description: "The round trip for changing anything under secrets/ in dhevmera: reconcile across hosts, commit, pack, publish, then fetch, unpack and relink on each other host. Use whenever a credential, token, key or secrets/config file is added, changed or removed - or when asked to pack, publish or refresh the secrets."
 ---
 
-# secrets
+# secret-ballet
 
 `secrets/` is a separate, remote-less git repo that travels as a GPG
 self-extractor. It does not move by push and pull, and the trip is one-way per

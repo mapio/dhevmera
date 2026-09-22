@@ -69,4 +69,4 @@ failure mode this repository is arranged to prevent.
 ## Not this skill's job
 
 Changes under `secrets/` do not travel by push and pull. They have their own
-ballet; use the `secrets` skill.
+ballet; use the `secret-ballet` skill.

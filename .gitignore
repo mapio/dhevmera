@@ -1,2 +1,3 @@
-/secrets*
+# unanchored on purpose: an unpacked secrets/ must be ignored wherever it lands
+secrets*
 unpack-secrets*

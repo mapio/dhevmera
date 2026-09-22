@@ -85,9 +85,10 @@ and silently stale on the others. `dotfiles/claude/README.md` is not linked and 
 its rules came from and what to weigh before adding another.
 
 `.claude/skills/` names the two procedures this layout implies but nothing here states as
-a sequence: **`roam`** lands a change on every host, **`secrets`** is the pack, publish,
-fetch, unpack round trip. They hold the order of steps and defer to this file for why each
-step is shaped as it is; keep it that way, or they become a second copy that ages.
+a sequence: **`roam`** lands a change on every host, **`secret-ballet`** is the pack,
+publish, fetch, unpack round trip. They hold the order of steps and defer to this file
+for why each step is shaped as it is; keep it that way, or they become a second copy that
+ages.
 
 ## Software fragments
 
