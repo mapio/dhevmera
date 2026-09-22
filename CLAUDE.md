@@ -159,6 +159,15 @@ accepted costs: sudo is required, and none of this works on Termux.
 - **Termux's `sshd` is not started for you**, so a tunnel that listens on svm but answers
   `kex_exchange_identification: Connection closed by remote host` means the far end has no
   sshd, not that the forward is broken.
+- **Android forbids reading `/proc/net/tcp`**, so nothing in Termux can map a listening
+  port back to a pid — `lsof` returns empty, `fuser` and `netstat` say permission denied.
+  `empower` therefore retires an orphaned master by finding it with
+  `pgrep -f "^ssh -S $CONTROL_DIR/<host> "` rather than by hunting whatever holds the port.
+  The `^` is load-bearing: unanchored, the pattern also matches the shell running the
+  script, and `pkill` then kills the caller. Six orphaned masters had accumulated on the
+  tablet before this worked, each one a run whose `-D 1080` lost the bind and carried on
+  regardless — which is also why `ExitOnForwardFailure` belongs on every master, not only
+  on the one carrying the reverse tunnel.
 - **Do not put `GITHUB_TOKEN` or `GH_TOKEN` in `bash_secrets`.** The existing
   `OLD_GITHUB_TOKEN` is a deliberate rename: an exported `GITHUB_TOKEN` silently overrides
   `gh`'s stored credentials. `gh` and `glab` both authenticate from their own config files
