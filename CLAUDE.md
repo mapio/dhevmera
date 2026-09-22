@@ -26,8 +26,8 @@ mistake when extending this repo. Consequences worth knowing:
   (`misc/hatch.toml` → `~/.config/hatch/config.toml`, `config/googleauth.json` →
   `~/.secrets.json`).
 - `--dry-run` as the first argument sets `RUN=echo`. The next argument is the secrets
-  root, defaulting to `/chome/santini/dhevmera` — the ZFS mount (`scripts/mount-zfs`,
-  pool `chome`), not `$HOME`. On a normal host pass `"$HOME/dhevmera"`.
+  root, defaulting to `/chome/santini/dhevmera` — svm's layout, not `$HOME`. On a normal
+  host pass `"$HOME/dhevmera"`.
 - Sentinel: `~/.install-dotfiles.complete`; log: `~/.install-dotfiles.log`.
 
 A handful of steps cannot be a symlink and sit at the end of the script as plain shell —
@@ -103,6 +103,12 @@ APT keyrings, sources and pins are centralised in `00-keyrings.sh`, which ends w
 `apt-get update`; the matching install goes in its own numbered fragment. Note
 `install-software` uses the relative path `./scripts/install.d/`, so **run it from the
 repo root**.
+
+`/chome` is *cloud home*: on the ephemeral hosts it is an encrypted external volume,
+attached after the base image boots and mounted by `scripts/mount-zfs` (`zpool import`
+plus a `zfs load-key`), which is why `zfsutils-linux` is in `cloud-init.yaml`. svm keeps
+the same paths without any of that — no pool, no mount, `/chome` is an ordinary directory
+on its root filesystem — so nothing there needs unlocking after a reboot.
 
 Bootstrap chain: `deploy-server` → `hcloud server create --user-data cloud/cloud-init.yaml`
 → `cloud-bootstrap` clones the repo and runs `install-software`. It deliberately does
@@ -233,19 +239,20 @@ accepted costs: sudo is required, and none of this works on Termux.
   empty token, so `glab auth status` exits non-zero with a 401 for it. Expected, not a
   regression.
 - **Unit files spell paths out fully resolved, never through a symlink** — `readlink -f` the
-  target and paste *that*. There are three layers of convenience link on the pool host and
-  the units used to go through all of them: `~/x` is made by `mount-zfs`, so it does not
-  exist until that has run; `/chome/santini/x/` is then a directory of shortcut symlinks
-  (`qbt` → `../Activities/Consulting/qbt`, `dhevmera` → `../Activities/Programming/dhevmera`,
-  and a dozen more); and `/chome/santini/dhevmera` is itself a symlink into `Activities/`.
-  So `parsifal-sync.service` now names
+  target and paste *that*. There are three layers of convenience link on svm and the units
+  used to go through all of them: `~/x` → `/chome/santini/x`, which on a cloud host is not
+  there until the volume is mounted; `/chome/santini/x/` is then a directory of shortcut
+  symlinks (`qbt` → `../Activities/Consulting/qbt`, `dhevmera` →
+  `../Activities/Programming/dhevmera`, and a dozen more); and `/chome/santini/dhevmera`
+  is itself a symlink into `Activities/`. So `parsifal-sync.service` now names
   `/chome/santini/Activities/Consulting/qbt/repos/parsifal-sync/sync.py` and
   `backup-cloud.service` names `/chome/santini/Activities/Programming/dhevmera/scripts/…`,
-  matching `ytwit-bot.service`, which was already canonical. The links under `x/` do live on
-  the pool, so they resolve whenever a unit could run at all — the point is not availability
-  but that `x/` is a personal shortcut layout, free to be reshuffled, while the `Activities/`
-  paths are the real ones. Note this makes the secrets-root default `/chome/santini/dhevmera`
-  a symlink too; it works, it is simply not what a unit should name. For a related reason
+  matching `ytwit-bot.service`, which was already canonical. Those links sit beside the
+  `Activities/` tree, so they resolve whenever a unit could run at all — the point is not
+  availability but that `x/` is a personal shortcut layout, free to be reshuffled, while
+  the `Activities/` paths are the real ones. Note this makes the secrets-root default
+  `/chome/santini/dhevmera` a symlink too; it works, it is simply not what a unit should
+  name. For a related reason
   `install-dotfiles` and `install-units` resolve their roots with `pwd -P`: `_install` links
   `realpath` of the source, and a logical root would not match it if the repo were reached
   through a symlink — which would silently defeat the prune's prefix test.

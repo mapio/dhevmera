@@ -63,10 +63,11 @@ Work is spread over several machines reached by SSH with agent forwarding; keys
 and aliases are already in `~/.ssh/config`. Default user is `santini`.
 
 - **svm** (`santinivm.docenti.di.unimi.it`) — personal server: teaching and
-  research. Carries the `chome` ZFS pool, so work lives under
+  research. Work lives under
   `/chome/santini/Activities/{Research,Teaching,Consulting,Programming,Talks,Websites}/`
-  — a real mount, not a typo. Runs the personal services (`ytwit-bot` and its
-  timers).
+  — `chome` is *cloud home*, the external volume the ephemeral hosts attach; on
+  svm it is a plain directory keeping the same layout. Not a typo for `/home`.
+  Runs the personal services (`ytwit-bot` and its timers).
 - **parsifal** (`159.149.133.232`) — QBT consulting work, and the only machine
   on the client VPN (`tun0`).
 - **pico**, `*.qbt.cluster`, `gitlab.qbt.cluster` — client infrastructure behind
