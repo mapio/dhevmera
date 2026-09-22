@@ -142,14 +142,21 @@ accepted costs: sudo is required, and none of this works on Termux.
   `scripts/empower` puts its own masters there too, one per host name.
 - **`scripts/empower` runs *from* the tablet, and everything it provides dies with it.**
   Per host it presets the gpg passphrase, then holds an `ssh -M -N -f` master carrying a
-  forwarded agent, a reverse tunnel on 2222 back to the tablet's Termux sshd on 8022, and
-  on parsifal a SOCKS proxy on 1080. `Host tablet-rev` is the way in from svm or parsifal —
-  `localhost:2222`, working only while that master is alive, which is the point: the tablet
-  is reachable exactly when you have chosen to connect it. The `-R` carries
-  `ExitOnForwardFailure=yes`, so an orphan holding 2222 on the far side fails the whole
-  master rather than quietly producing one with no tunnel in it; clear it with
-  `ssh <host> fuser -k 2222/tcp`. Passphrases come from `~/.pp`, which is host-local and
+  forwarded agent; svm additionally gets a reverse tunnel on 2222 back to the tablet's
+  Termux sshd on 8022, and parsifal a SOCKS proxy on 1080. That the tunnel lands on **svm
+  only** is the point: svm is the personal machine, while parsifal carries other accounts
+  that could reach a loopback port on it. Everywhere else jumps through svm, which is what
+  the `tablet-rev` blocks arrange — a `Match exec` probe for a local listener on 2222
+  (`ProxyJump none`, i.e. you are on svm) ahead of a `ProxyJump svm` fallback, the same
+  shape as the pico blocks and equally order-dependent. It works only while the master is
+  alive, which is deliberate: the tablet is reachable exactly when it has chosen to
+  connect. The `-R` carries `ExitOnForwardFailure=yes`, so an orphan holding 2222 on svm
+  fails the whole master rather than quietly producing one with no tunnel in it; clear it
+  with `ssh svm fuser -k 2222/tcp`. Passphrases come from `~/.pp`, host-local and
   deliberately not in this repo.
+- **Termux's `sshd` is not started for you**, so a tunnel that listens on svm but answers
+  `kex_exchange_identification: Connection closed by remote host` means the far end has no
+  sshd, not that the forward is broken.
 - **Do not put `GITHUB_TOKEN` or `GH_TOKEN` in `bash_secrets`.** The existing
   `OLD_GITHUB_TOKEN` is a deliberate rename: an exported `GITHUB_TOKEN` silently overrides
   `gh`'s stored credentials. `gh` and `glab` both authenticate from their own config files

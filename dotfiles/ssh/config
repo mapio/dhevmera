@@ -20,8 +20,16 @@ Host tablet
   User u0_a402
   Port 8022
 
-# The way back in from svm/parsifal, through the -R that scripts/empower opens
-# on its master; only reachable while that master is up.
+# The way back in, through the -R that scripts/empower opens on its master to
+# svm; only reachable while that master is up. svm alone carries the tunnel, so
+# everywhere else has to jump through it first. Probe-then-fallback mirrors the
+# pico blocks below, and must stay in this order.
+Match host tablet-rev exec "timeout 1 bash -c '</dev/tcp/localhost/2222' 2>/dev/null"
+  ProxyJump none
+
+Match host tablet-rev
+  ProxyJump svm
+
 Host tablet-rev
   HostName localhost
   User u0_a402

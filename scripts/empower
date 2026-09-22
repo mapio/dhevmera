@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 #
 # empower -- prime the remote agents and hold a persistent ssh master to each
-# host: agent forwarding, a reverse tunnel back to this machine's sshd, and for
-# parsifal a SOCKS proxy on 1080.
+# host: agent forwarding everywhere, a reverse tunnel back to this machine's
+# sshd on svm alone, and a SOCKS proxy on 1080 on parsifal alone.
 #
 # Meant to be run from the tablet, where there is no pinentry display for the
 # remote gpg-agent: rather than priming its cache with a throwaway signature,
@@ -27,7 +27,7 @@ source "$HOME/.pp"
 
 KEYGRIP=7D3C82B6932A480C398251B6B13ACCD647A0BC21
 CONTROL_DIR="$HOME/.ssh/sockets"
-REVERSE_PORT=2222      # port opened on each host, reaching back to ...
+REVERSE_PORT=2222      # port opened on svm, reaching back to ...
 SSHD_PORT=8022         # ... this machine's sshd, 8022 being Termux's default
 
 : "${GPG_PASSPHRASE:?not set by ~/.pp}"
@@ -85,11 +85,21 @@ for host in "${hosts[@]}"; do
     fi
 
     sock="$CONTROL_DIR/$host"
-    # ExitOnForwardFailure so a remote port already held by an orphan fails
-    # loudly here, rather than yielding a master with no tunnel in it.
-    extra_flags=(-o ExitOnForwardFailure=yes -R "$REVERSE_PORT:localhost:$SSHD_PORT")
-    label="agent+reverse:$REVERSE_PORT"
+    extra_flags=()
+    label="agent"
     local_port=
+    hint=
+    if [ "$host" = svm ]; then
+        # svm only: it is the personal machine, and parsifal has other accounts
+        # that could reach a loopback port there. From anywhere else the tablet
+        # is reached by jumping through svm, which is what the tablet-rev entry
+        # in dotfiles/ssh/config arranges. ExitOnForwardFailure so a port already
+        # held by an orphan fails loudly, rather than yielding a master with no
+        # tunnel in it.
+        extra_flags+=(-o ExitOnForwardFailure=yes -R "$REVERSE_PORT:localhost:$SSHD_PORT")
+        label="$label+reverse:$REVERSE_PORT"
+        hint=" (if $host:$REVERSE_PORT is held by an orphan: ssh $host fuser -k $REVERSE_PORT/tcp)"
+    fi
     if [ "$host" = parsifal ]; then
         extra_flags+=(-D 1080)
         local_port=1080
@@ -125,7 +135,7 @@ for host in "${hosts[@]}"; do
         if ssh -S "$sock" -M -N -f "${extra_flags[@]}" "$host"; then
             echo "  $label: started"
         else
-            echo "  $label: FAILED -- if $host:$REVERSE_PORT is held by an orphan, ssh $host fuser -k $REVERSE_PORT/tcp" >&2
+            echo "  $label: FAILED$hint" >&2
             status=1
         fi
     fi
