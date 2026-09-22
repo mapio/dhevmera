@@ -162,7 +162,10 @@ accepted costs: sudo is required, and none of this works on Termux.
   test says the thing that actually matters — *hand-installed under `/usr/local`* — and
   needs no hostname. It also stops and restarts `code-tunnel.service` around the swap,
   but only where that unit is active. On Termux the script runs `pkg upgrade` and never
-  reaches either.
+  reaches either. `--all` updates svm and parsifal too, by piping the script to them over
+  ssh rather than invoking their own clone — so one version runs everywhere and nothing
+  has to know that svm keeps its copy under `/chome`. It is never forwarded, or the
+  remotes would hand it straight back. Run it from the tablet, as with `empower`.
 - **Termux's `sshd` is not started for you**, so a tunnel that listens on svm but answers
   `kex_exchange_identification: Connection closed by remote host` means the far end has no
   sshd, not that the forward is broken.

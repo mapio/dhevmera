@@ -1,12 +1,28 @@
 #!/usr/bin/env bash
+#
+# Usage: update-system [--dry-run] [--all] [host ...]
+#
+# --all also updates the hosts given (default: svm parsifal), by piping this very
+# script to them, so they run the copy you invoked rather than whatever their own
+# clone holds. Meant to be run from the tablet, like empower.
 
 set -eo pipefail
 
-if [ "${1:-}" = "--dry-run" ]; then
-  RUN=echo
-  shift
+RUN=
+ALL=
+
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --dry-run) RUN=echo; shift ;;
+    --all)     ALL=1; shift ;;
+    *)         break ;;
+  esac
+done
+
+if [ "$#" -gt 0 ]; then
+  hosts=("$@")
 else
-  RUN=
+  hosts=(svm parsifal)
 fi
 
 if [ "$(id -u)" -eq 0 ]; then
@@ -19,6 +35,8 @@ fi
 
 log() { printf "\n==> %s\n\n" "$*"; }
 
+status=0
+
 # Termux detected the way shell/bash_profile does it. pkg wraps apt and needs no
 # sudo, there being no root on Android.
 
@@ -30,9 +48,10 @@ if command -v termux-setup-storage >/dev/null 2>&1; then
 else
 
   log "Updating APT packages"
-  $RUN $SUDO apt update
-  $RUN $SUDO apt upgrade -y
-  $RUN $SUDO apt autoremove -y
+  # noninteractive because --all runs this over ssh, with no tty for dpkg to prompt on.
+  $RUN $SUDO env DEBIAN_FRONTEND=noninteractive apt update
+  $RUN $SUDO env DEBIAN_FRONTEND=noninteractive apt upgrade -y
+  $RUN $SUDO env DEBIAN_FRONTEND=noninteractive apt autoremove -y
 
 fi
 
@@ -58,8 +77,6 @@ if [ -x "$CODE" ]; then
 
     log "Updating the VS Code CLI ($("$CODE" --version | head -n1))"
 
-    # Stop the tunnel around the swap only where it runs; is-active is also the
-    # guard for hosts that have the CLI but no unit.
     TUNNEL=code-tunnel.service
     if systemctl --user is-active --quiet "$TUNNEL" 2>/dev/null; then
       RESTART_TUNNEL=1
@@ -86,3 +103,28 @@ if [ -x "$CODE" ]; then
   fi
 
 fi
+
+# The remotes run this file over stdin, so there is one version in play per run and no
+# need to know where each host keeps its clone. --all is never forwarded, or they would
+# hand it straight back.
+
+if [ -n "$ALL" ]; then
+
+  if [ ! -r "$0" ]; then
+    echo "update-system: cannot re-read '$0' to send it to the remotes" >&2
+    exit 1
+  fi
+
+  for host in "${hosts[@]}"; do
+    log "Updating $host"
+    if ssh "$host" "bash -s -- ${RUN:+--dry-run}" < "$0"; then
+      :
+    else
+      echo "update-system: $host FAILED" >&2
+      status=1
+    fi
+  done
+
+fi
+
+exit "$status"
