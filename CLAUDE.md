@@ -179,7 +179,15 @@ accepted costs: sudo is required, and none of this works on Termux.
   work when named in full (`aichat -m openrouter:vendor/model:free`), just without context
   or pricing metadata. OpenRouter's free roster churns every few weeks, so that list is a
   snapshot; re-check it against `https://openrouter.ai/api/v1/models`, filtering ids that
-  end in `:free`.
+  end in `:free` — and check each one actually answers, because being listed there is not
+  enough: `thinkingmachines/inkling:free` was dropped from the config after answering 403
+  `only available on agentic harnesses`. Free endpoints draw on a shared pool, so a 429
+  `temporarily rate-limited upstream` is routine and means try another model, not that
+  anything is misconfigured — it is also why the default is `nvidia/nemotron-3.5-lightning`
+  rather than one of the cleaner models: probed back to back, it was the only one of the
+  four answering at all, while the Google and Z-AI endpoints 429'd for a quarter of an hour
+  straight. The price is that both nemotrons stream their raw `<think>` reasoning into the
+  answer; `google/gemma-4-31b-it:free` is the one to switch to when it will have you.
 - `~/.config/qbt/ca-bundle.crt` is **generated**, not linked: glab's `ca_cert` replaces the
   system trust pool instead of extending it, so the bundle must be the public roots plus
   `dotfiles/qbt/gitlab-qbt-cluster.crt`. Only the 2 KB leaf cert is committed.
