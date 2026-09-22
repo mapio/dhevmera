@@ -54,6 +54,19 @@ stale_masters() {
     pgrep -f "^ssh -S $CONTROL_DIR/$1 " || true
 }
 
+# ExitOnForwardFailure does not cover -D or -L here: the bind fails, ssh says so, and the
+# master starts anyway and reports success. So the forward it was meant to carry is probed
+# for directly. svm's is checked as a bound listener rather than end to end, so a tablet
+# with no sshd does not look like a broken tunnel.
+forward_up() {
+    case "$1" in
+        svm)      ssh -S "$CONTROL_DIR/$1" "$1" \
+                      "ss -lnt 2>/dev/null | grep -q '127.0.0.1:$REVERSE_PORT'" 2>/dev/null ;;
+        parsifal) bash -c "</dev/tcp/127.0.0.1/1080" 2>/dev/null ;;
+        *)        true ;;
+    esac
+}
+
 # ssh-add -l exits 0 once *any* identity is resident -- coarse, but enough to
 # avoid re-prompting for a key that's almost certainly already loaded.
 if ssh-add -l >/dev/null 2>&1; then
@@ -87,8 +100,7 @@ for host in "${hosts[@]}"; do
     fi
 
     sock="$CONTROL_DIR/$host"
-    # ExitOnForwardFailure for every host: without it a -D or -R that cannot bind leaves
-    # a master that reports success and silently carries no forward.
+    # Kept for the -R, where it does work; forward_up is what actually guarantees this.
     extra_flags=(-o ExitOnForwardFailure=yes)
     label="agent"
     hint=
@@ -105,7 +117,7 @@ for host in "${hosts[@]}"; do
         label="$label+socks:1080"
         hint=" (a stale listener on 1080 on this machine will do it)"
     fi
-    if ssh -S "$sock" -O check "$host" >/dev/null 2>&1; then
+    if ssh -S "$sock" -O check "$host" >/dev/null 2>&1 && forward_up "$host"; then
         echo "  $label: already up"
     else
         # The control socket didn't answer: either there was never one, or the master
@@ -124,7 +136,7 @@ for host in "${hosts[@]}"; do
             pids=$(stale_masters "$host")
             [ -z "$pids" ] || kill -9 $pids 2>/dev/null || true
         fi
-        if ssh -S "$sock" -M -N -f "${extra_flags[@]}" "$host"; then
+        if ssh -S "$sock" -M -N -f "${extra_flags[@]}" "$host" && forward_up "$host"; then
             echo "  $label: started"
         else
             echo "  $label: FAILED$hint" >&2

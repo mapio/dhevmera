@@ -152,9 +152,7 @@ accepted costs: sudo is required, and none of this works on Termux.
   dormant Tailscale route) sets `HostName tablet` earlier in the file, and `Match host`
   matches the substituted name, so it caught that alias too. It works only while the master is
   alive, which is deliberate: the tablet is reachable exactly when it has chosen to
-  connect. The `-R` carries `ExitOnForwardFailure=yes`, so an orphan holding 2222 on svm
-  fails the whole master rather than quietly producing one with no tunnel in it; clear it
-  with `ssh svm fuser -k 2222/tcp`. Passphrases come from `~/.pp`, host-local and
+  connect. Passphrases come from `~/.pp`, host-local and
   deliberately not in this repo.
 - **Termux's `sshd` is not started for you**, so a tunnel that listens on svm but answers
   `kex_exchange_identification: Connection closed by remote host` means the far end has no
@@ -166,8 +164,15 @@ accepted costs: sudo is required, and none of this works on Termux.
   The `^` is load-bearing: unanchored, the pattern also matches the shell running the
   script, and `pkill` then kills the caller. Six orphaned masters had accumulated on the
   tablet before this worked, each one a run whose `-D 1080` lost the bind and carried on
-  regardless — which is also why `ExitOnForwardFailure` belongs on every master, not only
-  on the one carrying the reverse tunnel.
+  regardless.
+- **`ExitOnForwardFailure` does not cover `-D` or `-L`**, whatever the man page implies:
+  measured on the tablet, a dynamic forward whose bind fails prints `Address already in
+  use`, and ssh exits 0 with the master alive and no forward in it — with or without `-f`,
+  and the same for `-L`. It does work for `-R`. So `empower` does not trust the flag: it
+  probes for the forward itself, both before declaring a master `already up` and after
+  starting one, and a master that fails the probe is retired on the next run rather than
+  being left to look healthy forever. svm's tunnel is probed as a bound listener on svm
+  rather than end to end, so a tablet with no `sshd` does not read as a broken forward.
 - **Do not put `GITHUB_TOKEN` or `GH_TOKEN` in `bash_secrets`.** The existing
   `OLD_GITHUB_TOKEN` is a deliberate rename: an exported `GITHUB_TOKEN` silently overrides
   `gh`'s stored credentials. `gh` and `glab` both authenticate from their own config files
