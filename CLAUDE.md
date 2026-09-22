@@ -228,6 +228,10 @@ accepted costs: sudo is required, and none of this works on Termux.
   work when named in full (`aichat -m openrouter:vendor/model:free`), just without context
   or pricing metadata. The roster churns every few weeks; regenerate it from
   `https://openrouter.ai/api/v1/models`, keeping ids that end in `:free`.
+- **On the tablet, aichat comes from `pkg install aichat`**, not from `65-aichat.sh`.
+  Termux packages it (0.30.0, level with upstream), which makes it the `/usr` bucket there
+  by the same rule the table uses — and `install-software` does not run on Termux anyway.
+  The config is the same file: `install-dotfiles` links it on every host.
 - **Being listed as free is not the same as being usable**, which is why the 16 listed are
   not the 21 the API returns. `thinkingmachines/inkling{,-small}:free` answer 403 `only
   available on agentic harnesses`; `nvidia/nemotron-3.5-content-safety:free` is a
