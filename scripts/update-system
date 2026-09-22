@@ -1,0 +1,88 @@
+#!/usr/bin/env bash
+
+set -eo pipefail
+
+if [ "${1:-}" = "--dry-run" ]; then
+  RUN=echo
+  shift
+else
+  RUN=
+fi
+
+if [ "$(id -u)" -eq 0 ]; then
+  SUDO=""
+elif command -v sudo >/dev/null 2>&1; then
+  SUDO="sudo"
+else
+  SUDO=""
+fi
+
+log() { printf "\n==> %s\n\n" "$*"; }
+
+# Termux detected the way shell/bash_profile does it. pkg wraps apt and needs no
+# sudo, there being no root on Android.
+
+if command -v termux-setup-storage >/dev/null 2>&1; then
+
+  log "Updating Termux packages"
+  $RUN pkg upgrade -y
+
+else
+
+  log "Updating APT packages"
+  $RUN $SUDO apt update
+  $RUN $SUDO apt upgrade -y
+  $RUN $SUDO apt autoremove -y
+
+fi
+
+# The VS Code CLI is a hand-installed binary in /usr/local, so apt cannot update it
+# and this has to. Guarded on that path rather than on 'code' being on PATH: parsifal
+# has a different code (/usr/share/code, the full editor) that this would overwrite.
+
+CODE=/usr/local/bin/code
+
+if [ -x "$CODE" ]; then
+
+  case "$(dpkg --print-architecture 2>/dev/null)" in
+    amd64) CODE_TARGET=cli-alpine-x64 ;;
+    arm64) CODE_TARGET=cli-alpine-arm64 ;;
+    *)     CODE_TARGET= ;;
+  esac
+
+  if [ -z "$CODE_TARGET" ]; then
+
+    log "No VS Code CLI build for this architecture, skipping"
+
+  else
+
+    log "Updating the VS Code CLI ($("$CODE" --version | head -n1))"
+
+    # Stop the tunnel around the swap only where it runs; is-active is also the
+    # guard for hosts that have the CLI but no unit.
+    TUNNEL=code-tunnel.service
+    if systemctl --user is-active --quiet "$TUNNEL" 2>/dev/null; then
+      RESTART_TUNNEL=1
+      $RUN systemctl --user stop "$TUNNEL"
+    else
+      RESTART_TUNNEL=
+    fi
+
+    # --no-same-owner for the reason 65-aichat.sh spells out: tar as root would
+    # otherwise restore whatever uid the archive carries.
+    if [ -z "$RUN" ]; then
+      curl -#L "https://code.visualstudio.com/sha/download?os=$CODE_TARGET" \
+        | $SUDO tar zxf - --no-same-owner -C /usr/local/bin
+      $SUDO chmod a+rx "$CODE"
+    else
+      $RUN "curl -#L 'https://code.visualstudio.com/sha/download?os=$CODE_TARGET' | $SUDO tar zxf - --no-same-owner -C /usr/local/bin"
+      $RUN $SUDO chmod a+rx "$CODE"
+    fi
+
+    [ -z "$RESTART_TUNNEL" ] || $RUN systemctl --user start "$TUNNEL"
+
+    log "VS Code CLI now $("$CODE" --version | head -n1)"
+
+  fi
+
+fi

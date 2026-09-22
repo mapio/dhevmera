@@ -154,6 +154,15 @@ accepted costs: sudo is required, and none of this works on Termux.
   alive, which is deliberate: the tablet is reachable exactly when it has chosen to
   connect. Passphrases come from `~/.pp`, host-local and
   deliberately not in this repo.
+- **`scripts/update-system` guards the VS Code CLI on `/usr/local/bin/code`, not on
+  `code` being on PATH.** Both svm and parsifal have a `code`, but they are different
+  things: svm's is the standalone CLI hand-installed into `/usr/local` by `15-code.sh`,
+  which apt cannot update and this script therefore does; parsifal's is `/usr/bin/code`
+  → `/usr/share/code/`, the full editor, which the CLI tarball would overwrite. The path
+  test says the thing that actually matters — *hand-installed under `/usr/local`* — and
+  needs no hostname. It also stops and restarts `code-tunnel.service` around the swap,
+  but only where that unit is active. On Termux the script runs `pkg upgrade` and never
+  reaches either.
 - **Termux's `sshd` is not started for you**, so a tunnel that listens on svm but answers
   `kex_exchange_identification: Connection closed by remote host` means the far end has no
   sshd, not that the forward is broken.
