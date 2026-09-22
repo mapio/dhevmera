@@ -40,7 +40,9 @@ currently the QBT CA bundle (below). Keep those separated by their own `log` lin
 `systemd`, `vscode`). If yes, it goes in `secrets/config/`. Files that mix the two get
 split when the tool allows it (`gh`: `config.yml` public, `hosts.yml` secret) and go
 wholly into `secrets/` when it does not (`glab`: one `config.yml` carrying both
-preferences and tokens).
+preferences and tokens). The same question governs `.claude/memory/`, which is
+versioned here and therefore world-readable: a note about QBT work belongs in that
+project's memory, never in this one.
 
 `secrets/` is a **separate git repo**, gitignored by the parent, with **no remote**. It
 travels as an encrypted self-extractor:
