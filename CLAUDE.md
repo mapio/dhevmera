@@ -36,10 +36,10 @@ currently the QBT CA bundle (below). Keep those separated by their own `log` lin
 ## Public vs secret is the routing rule
 
 **Does the file contain a credential?** If no, it goes in `dotfiles/<topic>/` (topics:
-`git`, `gh`, `glab`, `gnupg`, `misc`, `python`, `qbt`, `shell`, `ssh`, `systemd`, `vscode`).
-If yes, it goes in `secrets/config/`. Files that mix the two get split when the tool allows it
-(`gh`: `config.yml` public, `hosts.yml` secret) and go wholly into `secrets/` when it does
-not (`glab`: one `config.yml` carrying both preferences and tokens).
+`aichat`, `git`, `gh`, `glab`, `gnupg`, `misc`, `python`, `qbt`, `shell`, `ssh`, `systemd`,
+`vscode`). If yes, it goes in `secrets/config/`. Files that mix the two get split when the
+tool allows it (`gh`: `config.yml` public, `hosts.yml` secret) and go wholly into `secrets/`
+when it does not (`glab`: one `config.yml` carrying both preferences and tokens).
 
 `secrets/` is a **separate git repo**, gitignored by the parent, with **no remote**. It
 travels as an encrypted self-extractor:
@@ -87,7 +87,7 @@ Three buckets. Pick by **how the tool is distributed**, not by preference:
 | bucket | rule | examples |
 | --- | --- | --- |
 | `/usr` | available as an APT package from a public repo that standard tools can add | `tzdata`, `nodejs`, `docker-ce`, `gh`, `tailscale` |
-| `/usr/local` | needs sudo, but is **not** APT-packaged anywhere usable | `starship`, `glab`, `rclone`, VS Code CLI, `devcontainer` |
+| `/usr/local` | needs sudo, but is **not** APT-packaged anywhere usable | `starship`, `glab`, `rclone`, `aichat`, VS Code CLI, `devcontainer` |
 | `$HOME` | user-scoped, or manages its own toolchain and cannot be system-installed | `rustup` → `.cargo`, SDKMAN! → `.sdkman`, `bun` → `.bun` |
 
 The rule that actually matters is the negative one: **nothing that apt does not own may be
@@ -166,6 +166,20 @@ accepted costs: sudo is required, and none of this works on Termux.
   `install-dotfiles` and `install-units` resolve their roots with `pwd -P`: `_install` links
   `realpath` of the source, and a logical root would not match it if the repo were reached
   through a symlink — which would silently defeat the prune's prefix test.
+- **`aichat` is configured for OpenRouter's free tier, and its key is an env var.**
+  `dotfiles/aichat/config.yaml` is public because the client it declares carries no
+  `api_key`: aichat falls back to `<client name>_API_KEY`, so the credential is
+  `OPENROUTER_API_KEY` in `bash_secrets` — the split that the routing rule above asks for.
+  An openai-compatible client treats `api_key` as *optional*, so a host that never filled
+  that slot gets no missing-key diagnostic: aichat simply sends no `Authorization` header
+  and OpenRouter answers 401 `No cookie auth credentials found`. That is the message.
+  A client's own `models:` list **replaces** the one aichat ships for that provider, and
+  aichat's built-in openrouter list is entirely paid models, so enumerating only `:free`
+  ids is what keeps `.model` — and anything picked from it — free. Unlisted models still
+  work when named in full (`aichat -m openrouter:vendor/model:free`), just without context
+  or pricing metadata. OpenRouter's free roster churns every few weeks, so that list is a
+  snapshot; re-check it against `https://openrouter.ai/api/v1/models`, filtering ids that
+  end in `:free`.
 - `~/.config/qbt/ca-bundle.crt` is **generated**, not linked: glab's `ca_cert` replaces the
   system trust pool instead of extending it, so the bundle must be the public roots plus
   `dotfiles/qbt/gitlab-qbt-cluster.crt`. Only the 2 KB leaf cert is committed.

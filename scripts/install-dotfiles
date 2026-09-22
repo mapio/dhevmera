@@ -91,6 +91,8 @@ $RUN chmod 600 "$DOTFILES/glab/aliases.yml"
 
 _install $DOTFILES/qbt/gitlab-qbt-cluster.crt $HOME/.config/qbt/gitlab-qbt-cluster.crt
 
+_install $DOTFILES/aichat/config.yaml $HOME/.config/aichat/config.yaml
+
 # systemd --user units are NOT installed here: they are per-host, so they live in
 # dotfiles/systemd/<tag>/ and are linked by install-units, which run separately.
 
