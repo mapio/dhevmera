@@ -132,4 +132,9 @@ if [[ $PS1 ]]; then
   alias hs='herdr --remote svm'
   alias hp='herdr --remote parsifal'
 
+  # aichat
+
+  alias ai='aichat --code'
+  alias aif='aichat --code -f'   # aif ROUTING.md 'what is this for?'
+
 fi
