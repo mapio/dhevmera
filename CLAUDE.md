@@ -146,9 +146,11 @@ accepted costs: sudo is required, and none of this works on Termux.
   Termux sshd on 8022, and parsifal a SOCKS proxy on 1080. That the tunnel lands on **svm
   only** is the point: svm is the personal machine, while parsifal carries other accounts
   that could reach a loopback port on it. Everywhere else jumps through svm, which is what
-  the `tablet-rev` blocks arrange — a `Match exec` probe for a local listener on 2222
+  the `tablet` blocks arrange — a `Match exec` probe for a local listener on 2222
   (`ProxyJump none`, i.e. you are on svm) ahead of a `ProxyJump svm` fallback, the same
-  shape as the pico blocks and equally order-dependent. It works only while the master is
+  shape as the pico blocks. They key on `originalhost`, not `host`: `tablet-ts` (the
+  dormant Tailscale route) sets `HostName tablet` earlier in the file, and `Match host`
+  matches the substituted name, so it caught that alias too. It works only while the master is
   alive, which is deliberate: the tablet is reachable exactly when it has chosen to
   connect. The `-R` carries `ExitOnForwardFailure=yes`, so an orphan holding 2222 on svm
   fails the whole master rather than quietly producing one with no tunnel in it; clear it

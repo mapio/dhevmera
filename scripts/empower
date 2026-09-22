@@ -92,7 +92,7 @@ for host in "${hosts[@]}"; do
     if [ "$host" = svm ]; then
         # svm only: it is the personal machine, and parsifal has other accounts
         # that could reach a loopback port there. From anywhere else the tablet
-        # is reached by jumping through svm, which is what the tablet-rev entry
+        # is reached by jumping through svm, which is what the tablet entry
         # in dotfiles/ssh/config arranges. ExitOnForwardFailure so a port already
         # held by an orphan fails loudly, rather than yielding a master with no
         # tunnel in it.
