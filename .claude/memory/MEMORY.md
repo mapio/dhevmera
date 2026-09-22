@@ -1,7 +1,2 @@
-- [Agent sessions share this host](agent-sessions-share-this-host.md) — untracked files are usually another session's work, not Massimo's; never infer authorship from timestamps
-- [svm is the chome ZFS host](svm-is-the-chome-zfs-host.md) — runs ytwit-bot; parsifal does not, and has no repo units linked
-- [Never reboot parsifal or svm](never-reboot-parsifal-or-svm.md) — ask twice, every time; pending-kernel notices are to report, not act on
-- [Keep inline comments short](keep-inline-comments-short.md) — long "why" goes in commit bodies and CLAUDE.md, not in the script
-- [aichat / OpenRouter trial](aichat-openrouter-trial.md) — paid deepseek default chosen 2026-09-22; review how it goes around 2026-10-22
-- [Reaching the tablet](reaching-the-tablet.md) — ssh tablet, via svm, only while empower's master is up
-- [VSCODE_TOKEN pending removal](vscode-token-pending-removal.md) — dead since f786ffd; drop it with the next secrets change, not on its own
+- [aichat / OpenRouter trial](aichat-openrouter-trial.md) — paid deepseek
+  default chosen 2026-09-22; review how it goes around 2026-10-22
