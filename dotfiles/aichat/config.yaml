@@ -1,7 +1,8 @@
 # No api_key here: aichat falls back to OPENROUTER_API_KEY, which bash_secrets carries.
-# Only ':free' ids are listed, since a client's own list replaces the built-in one.
+# The default is paid but negligible; the rest are ':free' ids. A client's own list
+# replaces the built-in one, so anything not listed here has to be named in full.
 
-model: openrouter:nex-agi/nex-n2.5-mini:free
+model: openrouter:deepseek/deepseek-v4-flash
 
 stream: true
 save: true
@@ -27,6 +28,15 @@ clients:
               exclude: true
 
     models:
+      # The only paid model here: no platform request cap, and at this price a syntax
+      # question costs a small fraction of a cent.
+      - name: deepseek/deepseek-v4-flash
+        max_input_tokens: 1048576
+        max_output_tokens: 384000
+        input_price: 0.0886
+        output_price: 0.1772
+        supports_function_calling: true
+
       - name: nex-agi/nex-n2.5-mini:free
         max_input_tokens: 262144
         max_output_tokens: 235929

@@ -186,9 +186,9 @@ accepted costs: sudo is required, and none of this works on Termux.
   pair is domain-tuned. Free endpoints also share an upstream pool, so a 429 `temporarily
   rate-limited upstream` is routine and means pick another model — Google, Qwen, Z-AI and
   Poolside refused every attempt across an afternoon, while the two NEX and the NVIDIA
-  models never did. That is what picked the default: `nex-agi/nex-n2.5-mini:free` answered
-  three command-recall prompts correctly in 0.6–4.5s, with no fencing to strip.
-  `nvidia/nemotron-3-super-120b-a12b:free` is the fallback. Avoid `openrouter/free`, the
+  models never did. Of the free ones `nex-agi/nex-n2.5-mini:free` is the pick — three
+  command-recall prompts answered correctly in 0.6–4.5s, with no fencing to strip — and
+  `nvidia/nemotron-3-super-120b-a12b:free` is behind it. Avoid `openrouter/free`, the
   auto-router: it is reliable but routes at random, and one of three test prompts came back
   `User Safety: safe` from the classifier above.
 - **The `patch` block exists to silence `<think>`.** Nearly every free model is a reasoning
@@ -196,11 +196,14 @@ accepted costs: sudo is required, and none of this works on Termux.
   forty lines before the one-line answer. `reasoning: {exclude: true}` in the request body
   drops it at the source. `aichat --code` is the other half of that: it strips think tags
   and extracts just the code block.
-- **Platform caps are per day, not per request**: 20 requests/minute and 50/day on `:free`
-  ids, rising to 1000/day once the account has ever purchased 10 credits. `curl -H
-  "Authorization: Bearer $OPENROUTER_API_KEY" https://openrouter.ai/api/v1/key` reports the
-  counter. No DeepSeek model has a free variant — they are all paid, though `deepseek-v4-flash`
-  is $0.089/M input, and paid ids carry no platform request cap at all.
+- **The default is paid on purpose.** `deepseek/deepseek-v4-flash` is $0.0886/M in and
+  $0.1772/M out, so a syntax question costs a fraction of a cent, and paid ids carry no
+  platform request cap at all — `:free` ids are capped at 20 requests/minute and 50/day,
+  rising to 1000/day once the account has ever purchased 10 credits, which this one now
+  has. `curl -H "Authorization: Bearer $OPENROUTER_API_KEY`
+  `https://openrouter.ai/api/v1/key` reports both the counter and `is_free_tier`. No
+  DeepSeek model has a free variant; every one of them is paid. It does fence its answers
+  in ```bash, which the free NEX models do not — `aichat --code` strips that.
 - `~/.config/qbt/ca-bundle.crt` is **generated**, not linked: glab's `ca_cert` replaces the
   system trust pool instead of extending it, so the bundle must be the public roots plus
   `dotfiles/qbt/gitlab-qbt-cluster.crt`. Only the 2 KB leaf cert is committed.
