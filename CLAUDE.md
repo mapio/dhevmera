@@ -177,17 +177,30 @@ accepted costs: sudo is required, and none of this works on Termux.
   aichat's built-in openrouter list is entirely paid models, so enumerating only `:free`
   ids is what keeps `.model` — and anything picked from it — free. Unlisted models still
   work when named in full (`aichat -m openrouter:vendor/model:free`), just without context
-  or pricing metadata. OpenRouter's free roster churns every few weeks, so that list is a
-  snapshot; re-check it against `https://openrouter.ai/api/v1/models`, filtering ids that
-  end in `:free` — and check each one actually answers, because being listed there is not
-  enough: `thinkingmachines/inkling:free` was dropped from the config after answering 403
-  `only available on agentic harnesses`. Free endpoints draw on a shared pool, so a 429
-  `temporarily rate-limited upstream` is routine and means try another model, not that
-  anything is misconfigured — it is also why the default is `nvidia/nemotron-3.5-lightning`
-  rather than one of the cleaner models: probed back to back, it was the only one of the
-  four answering at all, while the Google and Z-AI endpoints 429'd for a quarter of an hour
-  straight. The price is that both nemotrons stream their raw `<think>` reasoning into the
-  answer; `google/gemma-4-31b-it:free` is the one to switch to when it will have you.
+  or pricing metadata. The roster churns every few weeks; regenerate it from
+  `https://openrouter.ai/api/v1/models`, keeping ids that end in `:free`.
+- **Being listed as free is not the same as being usable**, which is why the 16 listed are
+  not the 21 the API returns. `thinkingmachines/inkling{,-small}:free` answer 403 `only
+  available on agentic harnesses`; `nvidia/nemotron-3.5-content-safety:free` is a
+  classifier that replies `User Safety: safe` to anything; the `ling-3.0-flash-{sante,fin}`
+  pair is domain-tuned. Free endpoints also share an upstream pool, so a 429 `temporarily
+  rate-limited upstream` is routine and means pick another model — Google, Qwen, Z-AI and
+  Poolside refused every attempt across an afternoon, while the two NEX and the NVIDIA
+  models never did. That is what picked the default: `nex-agi/nex-n2.5-mini:free` answered
+  three command-recall prompts correctly in 0.6–4.5s, with no fencing to strip.
+  `nvidia/nemotron-3-super-120b-a12b:free` is the fallback. Avoid `openrouter/free`, the
+  auto-router: it is reliable but routes at random, and one of three test prompts came back
+  `User Safety: safe` from the classifier above.
+- **The `patch` block exists to silence `<think>`.** Nearly every free model is a reasoning
+  model, and aichat wraps returned reasoning in `<think>` tags, which on some models ran to
+  forty lines before the one-line answer. `reasoning: {exclude: true}` in the request body
+  drops it at the source. `aichat --code` is the other half of that: it strips think tags
+  and extracts just the code block.
+- **Platform caps are per day, not per request**: 20 requests/minute and 50/day on `:free`
+  ids, rising to 1000/day once the account has ever purchased 10 credits. `curl -H
+  "Authorization: Bearer $OPENROUTER_API_KEY" https://openrouter.ai/api/v1/key` reports the
+  counter. No DeepSeek model has a free variant — they are all paid, though `deepseek-v4-flash`
+  is $0.089/M input, and paid ids carry no platform request cap at all.
 - `~/.config/qbt/ca-bundle.crt` is **generated**, not linked: glab's `ca_cert` replaces the
   system trust pool instead of extending it, so the bundle must be the public roots plus
   `dotfiles/qbt/gitlab-qbt-cluster.crt`. Only the 2 KB leaf cert is committed.

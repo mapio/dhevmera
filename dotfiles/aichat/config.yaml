@@ -1,7 +1,7 @@
 # No api_key here: aichat falls back to OPENROUTER_API_KEY, which bash_secrets carries.
-# Only ':free' ids are listed because a client's own list replaces the built-in one.
+# Only ':free' ids are listed, since a client's own list replaces the built-in one.
 
-model: openrouter:nvidia/nemotron-3.5-lightning:free
+model: openrouter:nex-agi/nex-n2.5-mini:free
 
 stream: true
 save: true
@@ -16,12 +16,92 @@ clients:
   - type: openai-compatible
     name: openrouter
     api_base: https://openrouter.ai/api/v1
+
+    # Nearly every free model is a reasoning model, and aichat renders the reasoning it
+    # gets back inside <think> tags. This drops it at the source.
+    patch:
+      chat_completions:
+        '.*':
+          body:
+            reasoning:
+              exclude: true
+
     models:
-      - name: nvidia/nemotron-3.5-lightning:free
-        max_input_tokens: 1000000
+      - name: nex-agi/nex-n2.5-mini:free
+        max_input_tokens: 262144
+        max_output_tokens: 235929
+        input_price: 0
+        output_price: 0
+        supports_vision: true
+        supports_function_calling: true
+
+      - name: nvidia/nemotron-3-super-120b-a12b:free
+        max_input_tokens: 262144
+        max_output_tokens: 235929
+        input_price: 0
+        output_price: 0
+        supports_function_calling: true
+
+      - name: inclusionai/ling-3.0-flash-vl:free
+        max_input_tokens: 262144
+        max_output_tokens: 32768
+        input_price: 0
+        output_price: 0
+        supports_vision: true
+        supports_function_calling: true
+
+      - name: nex-agi/nex-n2.5-pro:free
+        max_input_tokens: 262144
+        max_output_tokens: 235929
+        input_price: 0
+        output_price: 0
+        supports_vision: true
+        supports_function_calling: true
+
+      - name: cohere/north-mini-code:free
+        max_input_tokens: 256000
+        max_output_tokens: 64000
+        input_price: 0
+        output_price: 0
+        supports_function_calling: true
+
+      - name: dots-studio/dots-3-note-preview:free
+        max_input_tokens: 512000
+        max_output_tokens: 460800
+        input_price: 0
+        output_price: 0
+        supports_vision: true
+        supports_function_calling: true
+
+      - name: google/gemma-4-26b-a4b-it:free
+        max_input_tokens: 262144
+        max_output_tokens: 32768
+        input_price: 0
+        output_price: 0
+        supports_vision: true
+        supports_function_calling: true
+
+      - name: google/gemma-4-31b-it:free
+        max_input_tokens: 262144
+        max_output_tokens: 32768
+        input_price: 0
+        output_price: 0
+        supports_vision: true
+        supports_function_calling: true
+
+      - name: liquid/lfm-2.5-2.6b:free
+        max_input_tokens: 65536
+        max_output_tokens: 8192
+        input_price: 0
+        output_price: 0
+        supports_function_calling: true
+
+      - name: nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free
+        max_input_tokens: 256000
         max_output_tokens: 65536
         input_price: 0
         output_price: 0
+        supports_vision: true
         supports_function_calling: true
 
       - name: nvidia/nemotron-3-ultra-550b-a55b:free
@@ -31,9 +111,30 @@ clients:
         output_price: 0
         supports_function_calling: true
 
-      - name: google/gemma-4-31b-it:free
+      - name: nvidia/nemotron-3.5-lightning:free
+        max_input_tokens: 1000000
+        max_output_tokens: 65536
+        input_price: 0
+        output_price: 0
+        supports_function_calling: true
+
+      - name: poolside/laguna-s-2.1:free
         max_input_tokens: 262144
         max_output_tokens: 32768
+        input_price: 0
+        output_price: 0
+        supports_function_calling: true
+
+      - name: poolside/laguna-xs-2.1:free
+        max_input_tokens: 262144
+        max_output_tokens: 32768
+        input_price: 0
+        output_price: 0
+        supports_function_calling: true
+
+      - name: qwen/qwen3.8-27b:free
+        max_input_tokens: 262144
+        max_output_tokens: 235929
         input_price: 0
         output_price: 0
         supports_vision: true
