@@ -1,0 +1,134 @@
+#!/usr/bin/env bash
+#
+# empower -- prime the remote agents and hold a persistent ssh master to each
+# host: agent forwarding, a reverse tunnel back to this machine's sshd, and for
+# parsifal a SOCKS proxy on 1080.
+#
+# Meant to be run from the tablet, where there is no pinentry display for the
+# remote gpg-agent: rather than priming its cache with a throwaway signature,
+# the passphrase is preset straight into it. Only the signing keygrip is preset,
+# so anything that *decrypts* there -- the gitgpg filter, were it ever used --
+# would still want a pinentry.
+#
+# GPG_PASSPHRASE and SSH_PASSPHRASE come from ~/.pp, which is deliberately not
+# in this repo; neither ever reaches argv or shell history. The target needs
+# allow-preset-passphrase in ~/.gnupg/gpg-agent.conf (dotfiles ships it, but a
+# running agent will not pick it up without gpgconf --reload gpg-agent).
+#
+# Usage: empower [host ...]        (default: svm parsifal)
+
+set -euo pipefail
+
+if [ ! -r "$HOME/.pp" ]; then
+    echo "empower: ~/.pp is missing; it must export GPG_PASSPHRASE and SSH_PASSPHRASE" >&2
+    exit 1
+fi
+source "$HOME/.pp"
+
+KEYGRIP=7D3C82B6932A480C398251B6B13ACCD647A0BC21
+CONTROL_DIR="$HOME/.ssh/sockets"
+REVERSE_PORT=2222      # port opened on each host, reaching back to ...
+SSHD_PORT=8022         # ... this machine's sshd, 8022 being Termux's default
+
+: "${GPG_PASSPHRASE:?not set by ~/.pp}"
+: "${SSH_PASSPHRASE:?not set by ~/.pp}"
+
+if [ "$#" -gt 0 ]; then
+    hosts=("$@")
+else
+    hosts=(svm parsifal)
+fi
+
+askpass=$(mktemp)
+trap 'rm -f "$askpass"' EXIT
+cat >"$askpass" <<'EOF'
+#!/bin/sh
+printf '%s' "$SSH_PASSPHRASE"
+EOF
+chmod 700 "$askpass"
+
+# lsof is not in a stock Termux, so fall back to fuser before giving up.
+listener_pids() {
+    lsof -ti "tcp:$1" -sTCP:LISTEN 2>/dev/null || fuser -n tcp "$1" 2>/dev/null || true
+}
+
+# ssh-add -l exits 0 once *any* identity is resident -- coarse, but enough to
+# avoid re-prompting for a key that's almost certainly already loaded.
+if ssh-add -l >/dev/null 2>&1; then
+    echo "ssh-add: already loaded"
+else
+    # setsid detaches the controlling tty and SSH_ASKPASS_REQUIRE=force makes
+    # ssh-add use SSH_ASKPASS regardless, so the passphrase never touches a
+    # prompt.
+    SSH_ASKPASS="$askpass" SSH_ASKPASS_REQUIRE=force setsid ssh-add </dev/null
+    echo "ssh-add: added"
+fi
+ssh-add -l | sed 's/^/  /'
+
+mkdir -p -m 700 "$CONTROL_DIR"
+
+status=0
+for host in "${hosts[@]}"; do
+    printf '== %s ==\n' "$host"
+
+    if printf '%s' "$GPG_PASSPHRASE" | ssh "$host" "
+        set -euo pipefail
+        gpgconf --kill gpg-agent
+        gpgconf --launch gpg-agent
+        lib=\$(gpgconf --list-dirs libexecdir)
+        \"\$lib/gpg-preset-passphrase\" --preset $KEYGRIP
+    "; then
+        echo "  gpg: ok"
+    else
+        echo "  gpg: FAILED" >&2
+        status=1
+    fi
+
+    sock="$CONTROL_DIR/$host"
+    # ExitOnForwardFailure so a remote port already held by an orphan fails
+    # loudly here, rather than yielding a master with no tunnel in it.
+    extra_flags=(-o ExitOnForwardFailure=yes -R "$REVERSE_PORT:localhost:$SSHD_PORT")
+    label="agent+reverse:$REVERSE_PORT"
+    local_port=
+    if [ "$host" = parsifal ]; then
+        extra_flags+=(-D 1080)
+        local_port=1080
+        label="$label+socks:1080"
+    fi
+    if ssh -S "$sock" -O check "$host" >/dev/null 2>&1; then
+        echo "  $label: already up"
+    else
+        # The control socket didn't answer: either there was never one, or
+        # the master died without cleaning up (ssh crash, network drop, or
+        # this machine rebooted -- CONTROL_DIR survives a reboot even though
+        # every ssh process it pointed to does not). Either way, clear out
+        # whatever it left behind before trying to start a fresh master:
+        # a stale socket *file* makes the new master's bind() fail even
+        # though nothing is listening, and if the same master was holding a
+        # local forwarded port (e.g. -D 1080) as an orphaned/zombie process
+        # no longer reachable via the control socket, that port stays bound
+        # and blocks the new -D too.
+        ssh -S "$sock" -O exit "$host" >/dev/null 2>&1 || true
+        rm -f "$sock"
+        if [ -n "$local_port" ]; then
+            pids=$(listener_pids "$local_port")
+            if [ -n "$pids" ]; then
+                echo "  $label: clearing stale listener on port $local_port (pid $pids)" >&2
+                kill $pids 2>/dev/null || true
+                for _ in 1 2 3 4 5; do
+                    [ -n "$(listener_pids "$local_port")" ] || break
+                    sleep 1
+                done
+                kill -9 $pids 2>/dev/null || true
+            fi
+        fi
+        if ssh -S "$sock" -M -N -f "${extra_flags[@]}" "$host"; then
+            echo "  $label: started"
+        else
+            echo "  $label: FAILED -- if $host:$REVERSE_PORT is held by an orphan, ssh $host fuser -k $REVERSE_PORT/tcp" >&2
+            status=1
+        fi
+    fi
+done
+
+exit "$status"

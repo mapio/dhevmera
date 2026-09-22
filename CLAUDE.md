@@ -139,6 +139,17 @@ accepted costs: sudo is required, and none of this works on Termux.
 - `~/.ssh/agent-link` and `~/.ssh/sockets/` are runtime state created by
   `refresh-agent-link.sh` (invoked as a `Match exec` predicate). Never commit them. The
   sockets live under `~/.ssh` rather than `/tmp` because `/tmp` is not writable on Termux.
+  `scripts/empower` puts its own masters there too, one per host name.
+- **`scripts/empower` runs *from* the tablet, and everything it provides dies with it.**
+  Per host it presets the gpg passphrase, then holds an `ssh -M -N -f` master carrying a
+  forwarded agent, a reverse tunnel on 2222 back to the tablet's Termux sshd on 8022, and
+  on parsifal a SOCKS proxy on 1080. `Host tablet-rev` is the way in from svm or parsifal —
+  `localhost:2222`, working only while that master is alive, which is the point: the tablet
+  is reachable exactly when you have chosen to connect it. The `-R` carries
+  `ExitOnForwardFailure=yes`, so an orphan holding 2222 on the far side fails the whole
+  master rather than quietly producing one with no tunnel in it; clear it with
+  `ssh <host> fuser -k 2222/tcp`. Passphrases come from `~/.pp`, which is host-local and
+  deliberately not in this repo.
 - **Do not put `GITHUB_TOKEN` or `GH_TOKEN` in `bash_secrets`.** The existing
   `OLD_GITHUB_TOKEN` is a deliberate rename: an exported `GITHUB_TOKEN` silently overrides
   `gh`'s stored credentials. `gh` and `glab` both authenticate from their own config files

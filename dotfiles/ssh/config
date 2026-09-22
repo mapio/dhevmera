@@ -20,6 +20,13 @@ Host tablet
   User u0_a402
   Port 8022
 
+# The way back in from svm/parsifal, through the -R that scripts/empower opens
+# on its master; only reachable while that master is up.
+Host tablet-rev
+  HostName localhost
+  User u0_a402
+  Port 2222
+
 Host phone
   HostName phone
   User u0_a306
