@@ -36,10 +36,11 @@ currently the QBT CA bundle (below). Keep those separated by their own `log` lin
 ## Public vs secret is the routing rule
 
 **Does the file contain a credential?** If no, it goes in `dotfiles/<topic>/` (topics:
-`aichat`, `git`, `gh`, `glab`, `gnupg`, `misc`, `python`, `qbt`, `shell`, `ssh`, `systemd`,
-`vscode`). If yes, it goes in `secrets/config/`. Files that mix the two get split when the
-tool allows it (`gh`: `config.yml` public, `hosts.yml` secret) and go wholly into `secrets/`
-when it does not (`glab`: one `config.yml` carrying both preferences and tokens).
+`aichat`, `claude`, `git`, `gh`, `glab`, `gnupg`, `misc`, `python`, `qbt`, `shell`, `ssh`,
+`systemd`, `vscode`). If yes, it goes in `secrets/config/`. Files that mix the two get
+split when the tool allows it (`gh`: `config.yml` public, `hosts.yml` secret) and go
+wholly into `secrets/` when it does not (`glab`: one `config.yml` carrying both
+preferences and tokens).
 
 `secrets/` is a **separate git repo**, gitignored by the parent, with **no remote**. It
 travels as an encrypted self-extractor:
@@ -71,6 +72,15 @@ from it. Where the same key differs on both — an `[od]` token each host refres
 itself — the later `expiry` in the token JSON is the one to keep.
 
 Env-var secrets live in `secrets/config/bash_secrets`, sourced by `shell/bash_profile`.
+
+## The global Claude Code instructions ship from here
+
+`dotfiles/claude/instructions.md` is linked to `~/.claude/CLAUDE.md`, the file Claude Code
+loads at the start of every session in every directory on this host, on top of whatever
+`CLAUDE.md` the project provides — including this one. It roams for the same reason the
+shell config does, and the symlink is what keeps it from being edited in place on one host
+and silently stale on the others. `dotfiles/claude/README.md` is not linked and says where
+its rules came from and what to weigh before adding another.
 
 ## Software fragments
 
@@ -348,3 +358,8 @@ accepted costs: sudo is required, and none of this works on Termux.
   `systemctl --user enable` afterwards.** `install-units` relinking the unit is not enough —
   it fixes the entry in `~/.config/systemd/user/` while the enablement still points at the
   old path. Check with `find ~/.config/systemd/user -xtype l`, which should print nothing.
+
+## Read the global instructions first
+
+**`~/.claude/CLAUDE.md`** — the general rules for every repository, deployed
+from `dotfiles/claude/instructions.md` in this one. Nothing above repeats it.

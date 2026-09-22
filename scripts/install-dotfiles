@@ -93,6 +93,10 @@ _install $DOTFILES/qbt/gitlab-qbt-cluster.crt $HOME/.config/qbt/gitlab-qbt-clust
 
 _install $DOTFILES/aichat/config.yaml $HOME/.config/aichat/config.yaml
 
+# Named instructions.md rather than CLAUDE.md so it is not also loaded as the project
+# file for this directory; dotfiles/claude/README.md says why the payload looks as it does.
+_install $DOTFILES/claude/instructions.md $HOME/.claude/CLAUDE.md
+
 # systemd --user units are NOT installed here: they are per-host, so they live in
 # dotfiles/systemd/<tag>/ and are linked by install-units, which run separately.
 
