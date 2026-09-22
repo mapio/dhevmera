@@ -5,7 +5,7 @@
 model: openrouter:deepseek/deepseek-v4-flash
 
 stream: true
-save: true
+save: false
 keybindings: emacs
 highlight: true
 wrap: auto
