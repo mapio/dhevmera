@@ -82,13 +82,6 @@ if [[ $PS1 ]]; then
     if [[ $- =~ .*i.* ]]; then bind '"\C-r": "\C-a hstr \C-j"'; fi
   fi
 
-  # xclip
-  
-  if is_cmd xclip; then
-    alias pbpaste='xclip -selection clipboard -rmlastnl -o'
-    alias pbcopy='xclip -selection clipboard -rmlastnl -i'
-  fi
-
   # direnv
   
   if is_cmd direnv; then
@@ -133,5 +126,10 @@ if [[ $PS1 ]]; then
   if [ -v IN_TERMUX ]; then
     export SSH_AUTH_SOCK="$PREFIX"/var/run/ssh-agent.socket
   fi
+
+  # herdr
+ 
+  alias hs='herdr --remote svm'
+  alias hp='herdr --remote parsifal'
 
 fi
