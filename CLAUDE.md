@@ -191,6 +191,15 @@ accepted costs: sudo is required, and none of this works on Termux.
   `nvidia/nemotron-3-super-120b-a12b:free` is behind it. Avoid `openrouter/free`, the
   auto-router: it is reliable but routes at random, and one of three test prompts came back
   `User Safety: safe` from the classifier above.
+- **A `:free` id is one endpoint, so a 429 on it has no workaround but waiting.** Dropping
+  the suffix is the escape: `qwen/qwen3.8-27b:free` resolves to ModelRun alone, while
+  `qwen/qwen3.8-27b` fans out over seventeen providers with failover, at $0.10/M in and
+  $1.80/M out. Check with `https://openrouter.ai/api/v1/models/<id>/endpoints`. Do not read
+  the 429's own advice too literally: "route to another provider" cannot apply where there
+  is only one, and "add your own key" means BYOK — a paid account with a provider
+  OpenRouter integrates, billed there, plus 5% to OpenRouter (waived under $25k/month). It
+  does not raise a free variant's ceiling, because that ceiling is the free provider's
+  shared pool.
 - **The `patch` block exists to silence `<think>`.** Nearly every free model is a reasoning
   model, and aichat wraps returned reasoning in `<think>` tags, which on some models ran to
   forty lines before the one-line answer. `reasoning: {exclude: true}` in the request body
