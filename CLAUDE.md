@@ -204,6 +204,14 @@ accepted costs: sudo is required, and none of this works on Termux.
   `https://openrouter.ai/api/v1/key` reports both the counter and `is_free_tier`. No
   DeepSeek model has a free variant; every one of them is paid. It does fence its answers
   in ```bash, which the free NEX models do not — `aichat --code` strips that.
+- **It is not the cheapest that would do**, which was a deliberate choice rather than an
+  oversight: 27 paid text models undercut it, and on the same three recall prompts the paid
+  `nex-agi/nex-n2.5-mini` ($0.063/M blended against $0.133) answered all three correctly,
+  two to five times faster, without fencing. The gap is under a cent a month at any
+  plausible usage, so it was settled on headroom for harder questions, not on price. Two
+  results worth keeping if this is ever revisited: `mistralai/mistral-nemo`, the cheapest
+  of all, invented a `jq` merge that does not work, and `qwen/qwen3.7-flash` is correct but
+  takes 20–30 seconds a question.
 - `~/.config/qbt/ca-bundle.crt` is **generated**, not linked: glab's `ca_cert` replaces the
   system trust pool instead of extending it, so the bundle must be the public roots plus
   `dotfiles/qbt/gitlab-qbt-cluster.crt`. Only the 2 KB leaf cert is committed.
