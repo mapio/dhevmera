@@ -28,9 +28,10 @@ else
   elif [ -z "$AICHAT_VER" ]; then
     warn "could not determine the latest aichat version, skipping"
   else
-    # The tarball is flat, holding just 'aichat'.
+    # The tarball is flat, holding just 'aichat'. --no-same-owner because upstream built
+    # it as uid 1001, which tar would otherwise restore verbatim.
     curl -#L "https://github.com/sigoden/aichat/releases/download/v${AICHAT_VER}/aichat-v${AICHAT_VER}-${AICHAT_TARGET}.tar.gz" \
-      | $SUDO tar zxf - -C /usr/local/bin aichat
+      | $SUDO tar zxf - --no-same-owner -C /usr/local/bin aichat
     $SUDO chmod a+rx /usr/local/bin/aichat
     ok "aichat $AICHAT_VER installed"
   fi
