@@ -70,6 +70,15 @@ and aliases are already in `~/.ssh/config`. Default user is `santini`.
   Runs the personal services (`ytwit-bot` and its timers).
 - **parsifal** (`159.149.133.232`) — QBT consulting work, and the only machine
   on the client VPN (`tun0`).
+- **mercurio** (`mercurio.srv.di.unimi.it`) — where his mail lives: `~/Maildir`
+  is the real mailbox, NFS-shared with the university IMAP server. To find mail,
+  run `~/mail-scripts/maildir_search.py` there (`--from`, `--to`, `--subject`,
+  `--since`, `--until`; wildcards, or `--regex`). It prints no matches: it
+  hard-links them into the `Search` IMAP folder. To read results in a session,
+  query its header index `~/.maildir_index.db` read-only (table `messages`:
+  `date`, `folder`, `filename`, `from_`, `recipients`, `subject`). The scripts
+  come from the `mail-scripts` repo on svm (`Activities/Programming/`) via its
+  `deploy`; never edit them on mercurio by hand.
 - **pico**, `*.qbt.cluster`, `gitlab.qbt.cluster` — client infrastructure behind
   the VPN, reached `ProxyJump parsifal` except when directly reachable, which
   the config probes for. Shared production, running other people's services.
