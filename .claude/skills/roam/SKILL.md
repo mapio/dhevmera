@@ -52,6 +52,9 @@ Per host:
 ```bash
 find ~/.config/systemd/user -xtype l    # dangling unit links; want no output
 ls -la ~/.claude/CLAUDE.md              # a symlink into the repo, never a plain file
+for d in dotfiles/claude/skills/*/; do    # from the repo root; want no output
+  [ "$(readlink ~/.claude/skills/"$(basename "$d")")" = "$(pwd -P)/${d%/}" ] || echo "unlinked: $d"
+done
 readlink ~/.claude/projects/"$(pwd -P | tr / -)"/memory    # from the repo root
 ```
 
@@ -60,6 +63,7 @@ it:
 
 ```bash
 md5sum ~/.claude/CLAUDE.md
+(cd ~/.claude/skills && for d in "$OLDPWD"/dotfiles/claude/skills/*/; do md5sum "$(basename "$d")"/*; done)
 ```
 
 The same digest on every host is the only proof that matters. A file that
