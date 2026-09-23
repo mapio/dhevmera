@@ -96,6 +96,9 @@ _install $DOTFILES/aichat/config.yaml $HOME/.config/aichat/config.yaml
 # Named instructions.md rather than CLAUDE.md so it is not also loaded as the project
 # file for this directory; dotfiles/claude/README.md says why the payload looks as it does.
 _install $DOTFILES/claude/instructions.md $HOME/.claude/CLAUDE.md
+# One line per skill, not the whole directory: ~/.claude/skills/ also holds entries this
+# repo does not own.
+_install $DOTFILES/claude/skills/search-mail $HOME/.claude/skills/search-mail
 
 # systemd --user units are NOT installed here: they are per-host, so they live in
 # dotfiles/systemd/<tag>/ and are linked by install-units, which run separately.

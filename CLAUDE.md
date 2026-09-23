@@ -84,6 +84,12 @@ shell config does, and the symlink is what keeps it from being edited in place o
 and silently stale on the others. `dotfiles/claude/README.md` is not linked and says where
 its rules came from and what to weigh before adding another.
 
+Global skills ship the same way: `dotfiles/claude/skills/<name>/` is linked to
+`~/.claude/skills/<name>`, which Claude Code loads in every project. Each skill gets its
+own `_install` line, never the whole directory, because `~/.claude/skills/` also holds
+entries this repo does not own (`synced/`). A skill about one repository stays in that
+repository's `.claude/skills/`, as `roam` and `secret-ballet` do here.
+
 `.claude/skills/` names the two procedures this layout implies but nothing here states as
 a sequence: **`roam`** lands a change on every host, **`secret-ballet`** is the pack,
 publish, fetch, unpack round trip. They hold the order of steps and defer to this file

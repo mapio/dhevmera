@@ -30,3 +30,11 @@ host roles, paths — was verified against the machines rather than recalled.
   an addition by which kind it is, not by how many lines it takes.
 - A rule belongs here only if it holds across projects. One project's convention
   belongs in that project's own `CLAUDE.md` or memory.
+
+## Skills
+
+`skills/<name>/` holds the global skills, each linked into `~/.claude/skills/`.
+They are the answer to the length problem above: when a rule is really a
+procedure — how to query mail, say — the instructions keep only the fact that
+cues it ("mail is on mercurio, use the `search-mail` skill"), and the steps sit
+in a skill, whose body costs tokens only in the sessions that use it.
