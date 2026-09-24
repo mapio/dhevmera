@@ -311,12 +311,13 @@ Project memory lives in [.claude/memory/](.claude/memory/) inside the
 repository, versioned with it. The system's default memory path is a symlink
 pointing there — **verify this at the start of every session** in any git
 repository. Claude Code encodes the repository's absolute path under
-`~/.claude/projects/` by replacing every `/` with `-`, so for a checkout at
-`/some/abs/path` the symlink is `~/.claude/projects/-some-abs-path/memory`.
+`~/.claude/projects/` by replacing every non-alphanumeric character with `-` —
+not just `/`: a checkout at `/some/mail-utils+mcp` maps to
+`~/.claude/projects/-some-mail-utils-mcp/memory`.
 
 ```bash
 repo_abs_path=$(git rev-parse --show-toplevel)
-encoded=$(echo "$repo_abs_path" | tr / -)
+encoded=$(echo "$repo_abs_path" | sed 's/[^A-Za-z0-9]/-/g')
 readlink ~/.claude/projects/"$encoded"/memory
 # must print: $repo_abs_path/.claude/memory
 ```

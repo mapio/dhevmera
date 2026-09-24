@@ -55,7 +55,7 @@ ls -la ~/.claude/CLAUDE.md              # a symlink into the repo, never a plain
 for d in dotfiles/claude/skills/*/; do    # from the repo root; want no output
   [ "$(readlink ~/.claude/skills/"$(basename "$d")")" = "$(pwd -P)/${d%/}" ] || echo "unlinked: $d"
 done
-readlink ~/.claude/projects/"$(pwd -P | tr / -)"/memory    # from the repo root
+readlink ~/.claude/projects/"$(pwd -P | sed 's/[^A-Za-z0-9]/-/g')"/memory    # from the repo root
 ```
 
 Then compare what the hosts actually see, rather than trusting that a pull did
