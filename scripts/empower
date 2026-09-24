@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
 #
-# empower -- prime the remote agents and hold a persistent ssh master to each
-# host: agent forwarding everywhere, a reverse tunnel back to this machine's
-# sshd on svm alone, and a SOCKS proxy on 1080 on parsifal alone.
+# empower -- prime the remote agents, leave a persistent ssh master to each host,
+# and exit: agent forwarding everywhere, a reverse tunnel back to this machine's
+# sshd on svm alone, and a SOCKS proxy on 1080 on parsifal alone. Idempotent, so
+# rerunning it is the fix for any master lost to a reboot or a network change.
 #
 # Meant to be run from the tablet, where there is no pinentry display for the
 # remote gpg-agent: rather than priming its cache with a throwaway signature,

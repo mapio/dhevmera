@@ -171,8 +171,8 @@ accepted costs: sudo is required, and none of this works on Termux.
   `refresh-agent-link.sh` (invoked as a `Match exec` predicate). Never commit them. The
   sockets live under `~/.ssh` rather than `/tmp` because `/tmp` is not writable on Termux.
   `scripts/empower` puts its own masters there too, one per host name.
-- **`scripts/empower` runs *from* the tablet, and everything it provides dies with it.**
-  Per host it presets the gpg passphrase, then holds an `ssh -M -N -f` master carrying a
+- **`scripts/empower` runs *from* the tablet, sets up its masters and exits.** Per host it
+  presets the gpg passphrase, then leaves a detached `ssh -M -N -f` master carrying a
   forwarded agent; svm additionally gets a reverse tunnel on 2222 back to the tablet's
   Termux sshd on 8022, and parsifal a SOCKS proxy on 1080. That the tunnel lands on **svm
   only** is the point: svm is the personal machine, while parsifal carries other accounts
@@ -181,9 +181,11 @@ accepted costs: sudo is required, and none of this works on Termux.
   (`ProxyJump none`, i.e. you are on svm) ahead of a `ProxyJump svm` fallback, the same
   shape as the pico blocks. They key on `originalhost`, not `host`: `tablet-ts` (the
   dormant Tailscale route) sets `HostName tablet` earlier in the file, and `Match host`
-  matches the substituted name, so it caught that alias too. It works only while the master is
-  alive, which is deliberate: the tablet is reachable exactly when it has chosen to
-  connect. Passphrases come from `~/.pp`, host-local and
+  matches the substituted name, so it caught that alias too. Reaching the tablet needs
+  `empower` to have run once, not to be running: the masters outlive it. They do not outlive
+  a tablet reboot or a lost connection, and since `empower` is idempotent the remedy for
+  either is to run it again — so when the tablet does not answer, ask for a rerun rather
+  than treating it as unreachable. Passphrases come from `~/.pp`, host-local and
   deliberately not in this repo.
 - **`scripts/update-system` guards the VS Code CLI on `/usr/local/bin/code`, not on
   `code` being on PATH.** Both svm and parsifal have a `code`, but they are different

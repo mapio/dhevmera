@@ -22,9 +22,11 @@ svm's repo is also reachable as `/chome/santini/dhevmera`, a symlink. Pull
 through whichever you like, but anything that records a path — a symlink target,
 a unit file — spells out the resolved `Activities/` one.
 
-The tablet answers only while `scripts/empower` has a live master from it to
-svm. If `ssh tablet` fails, that is the expected state, not a fault: do the
-other hosts, say the tablet was skipped, and stop. Never try to route around it.
+The tablet answers once `scripts/empower` has run there: it leaves detached
+masters behind and exits. If `ssh tablet` fails, a master has been lost (reboot,
+network change): ask Massimo to rerun `empower`, which is idempotent, do the
+other hosts meanwhile, and finish the tablet once he says it has run. Never try
+to route around it.
 
 ## The sequence
 

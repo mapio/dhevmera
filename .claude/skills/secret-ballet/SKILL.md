@@ -66,9 +66,9 @@ svm.
 
 ## Traps worth naming
 
-- The tablet is reachable only while `empower`'s master is up. If it is not, say
-  so and leave it — it will be a host running older credentials until the next
-  trip, which is a fact to report, not to work around.
+- The tablet is reachable once `empower` has run there. If `ssh tablet` fails,
+  ask Massimo to rerun it (it is idempotent) and finish the tablet once he has;
+  never work around it.
 - `scripts/unpack-secrets` is generated and gitignored. Leaving one lying around
   is what makes the next pack or fetch refuse.
 - Nothing under `secrets/` is ever committed to the parent repository, which is
