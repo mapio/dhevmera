@@ -26,9 +26,8 @@ A host with something uncommitted, or with a key the others lack, cannot simply
 receive a snapshot — it would lose it. Reconcile everything onto one host first
 and pack from there. The snapshot is only safe when it is a superset.
 
-Where the same key exists on two hosts with different values — an `[od]` token
-each host refreshed for itself — the later `expiry` in the token JSON is the one
-to keep.
+Ignore OAuth `token` lines when comparing: they differ on every host and are
+refreshed on use, so a token-only diff is nothing to reconcile.
 
 ## While you are in here anyway
 
