@@ -227,6 +227,12 @@ accepted costs: sudo is required, and none of this works on Termux.
   `-O check` still passes, since it only asks the local process, and a session through it
   stalls until `ServerAlive` gives up, which is how a rerun used to hang. So a master is
   only called up after a `true` run through it returns within `timeout 10`.
+  Retiring such a master frees nothing on svm, though: its FIN never arrives, and with
+  `ClientAliveInterval 0` sshd keeps the `-R` listener on 2222 until TCP keepalive gives up,
+  about two hours on, refusing the new master's forward in the meantime. So on `remote port
+  forwarding failed` `empower` kills the holder with `sudo -n fuser -k 2222/tcp` and retries
+  once. The `sudo` is not optional: sshd's session processes are non-dumpable, so their
+  `/proc/<pid>/fd` belongs to root and an unprivileged `fuser` finds nothing and exits 1.
 - **Do not put `GITHUB_TOKEN` or `GH_TOKEN` in `bash_secrets`.** The existing
   `OLD_GITHUB_TOKEN` is a deliberate rename: an exported `GITHUB_TOKEN` silently overrides
   `gh`'s stored credentials. `gh` and `glab` both authenticate from their own config files

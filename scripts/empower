@@ -74,6 +74,25 @@ forward_up() {
     esac
 }
 
+# ssh reports a refused bind on stderr and carries on, so that is the signal that actually
+# distinguishes our forward from someone else's listener. Leaves ssh's stderr in $err.
+start_master() {
+    err=$(ssh -S "$sock" -M -N -f "${extra_flags[@]}" "$host" 2>&1) &&
+        ! grep -qE "cannot listen to port|Address already in use" <<<"$err" &&
+        forward_up "$host"
+}
+
+# A lost master leaves its -R bound on svm for ~2h (see CLAUDE.md); ours is retired by now,
+# so the holder is that orphan. sudo because sshd's fds are invisible to a plain fuser.
+clear_reverse_orphan() {
+    grep -q "remote port forwarding failed" <<<"$err" || return 1
+    echo "  $label: killing orphaned listener on $host:$REVERSE_PORT" >&2
+    ssh -S "$sock" -O exit "$host" >/dev/null 2>&1 || true
+    rm -f "$sock"
+    ssh "$host" "sudo -n fuser -k $REVERSE_PORT/tcp" >/dev/null 2>&1 || return 1
+    sleep 1
+}
+
 # ssh-add -l exits 0 once *any* identity is resident -- coarse, but enough to
 # avoid re-prompting for a key that's almost certainly already loaded.
 if ssh-add -l >/dev/null 2>&1; then
@@ -117,7 +136,7 @@ for host in "${hosts[@]}"; do
         # svm, which is what the tablet entry in dotfiles/ssh/config arranges.
         extra_flags+=(-R "$REVERSE_PORT:localhost:$SSHD_PORT")
         label="$label+reverse:$REVERSE_PORT"
-        hint=" (if $host:$REVERSE_PORT is held by an orphan: ssh $host fuser -k $REVERSE_PORT/tcp)"
+        hint=" (see what holds it: ssh $host sudo ss -ltnp sport = :$REVERSE_PORT)"
     fi
     if [ "$host" = parsifal ]; then
         extra_flags+=(-D 1080)
@@ -144,12 +163,9 @@ for host in "${hosts[@]}"; do
             pids=$(stale_masters "$host")
             [ -z "$pids" ] || kill -9 $pids 2>/dev/null || true
         fi
-        # ssh reports a refused bind on stderr and carries on, so that is the signal
-        # that actually distinguishes our forward from someone else's listener. Retire
-        # the useless master too, or the next run finds it and calls it already up.
-        if err=$(ssh -S "$sock" -M -N -f "${extra_flags[@]}" "$host" 2>&1) &&
-           ! grep -qE "cannot listen to port|Address already in use" <<<"$err" &&
-           forward_up "$host"; then
+        # On failure retire the useless master too, or the next run calls it already up.
+        if start_master ||
+           { [ "$host" = svm ] && clear_reverse_orphan && start_master; }; then
             echo "  $label: started"
         else
             [ -z "$err" ] || printf '%s\n' "$err" | sed 's/^/  /' >&2
