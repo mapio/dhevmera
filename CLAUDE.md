@@ -221,6 +221,10 @@ accepted costs: sudo is required, and none of this works on Termux.
   `Address already in use` / `cannot listen to port`, which it prints and then carries on
   regardless — so that is what the start path greps for, and a master that trips it is
   retired immediately rather than left for the next run to mistake for a healthy one.
+  A master can also outlive its connection when the tablet sleeps or changes network:
+  `-O check` still passes, since it only asks the local process, and a session through it
+  stalls until `ServerAlive` gives up, which is how a rerun used to hang. So a master is
+  only called up after a `true` run through it returns within `timeout 10`.
 - **Do not put `GITHUB_TOKEN` or `GH_TOKEN` in `bash_secrets`.** The existing
   `OLD_GITHUB_TOKEN` is a deliberate rename: an exported `GITHUB_TOKEN` silently overrides
   `gh`'s stored credentials. `gh` and `glab` both authenticate from their own config files

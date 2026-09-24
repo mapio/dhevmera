@@ -343,5 +343,8 @@ spirit of, but never copied from:
 > Your genie is awake: wrapped at 80, signed in GPG, and sworn off
 > `--no-gpg-sign`.
 
+A session that opens by resuming work — from `current-plan.md`, a "restart" or
+a summary — is still a first reply: the line comes first, then the resumption.
+
 One line, on the first reply only, then straight to the work. It sits at the
 foot of the file on purpose: reaching it means the whole thing is in context.
