@@ -83,7 +83,7 @@ start_master() {
         forward_up "$host"
 }
 
-# A lost master leaves its -R bound on svm for ~2h (see CLAUDE.md); ours is retired by now,
+# A lost master leaves its -R bound on svm for ~2h (see dotfiles/ssh/README.md); ours is retired by now,
 # so the holder is that orphan. sudo because sshd's fds are invisible to a plain fuser.
 clear_reverse_orphan() {
     grep -q "remote port forwarding failed" <<<"$err" || return 1

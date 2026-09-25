@@ -6,7 +6,7 @@ description: "Land a dhevmera change on every host: commit, push, pull on the ot
 # roam
 
 A change to this repository does nothing on the other hosts until it is pushed,
-pulled and relinked there. This is that sequence. `CLAUDE.md` says *why* each
+pulled and relinked there. This is that sequence. `README.md` says *why* each
 step is shaped as it is; do not restate it here, read it when a step surprises
 you.
 

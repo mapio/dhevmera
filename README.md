@@ -7,6 +7,32 @@ particular host carries by tag (systemd `--user` units, ssh key pairs,
 `authorized_keys`), and `scripts/setup-claude` sets up Claude Code where it is
 installed. The first two are host-agnostic; the others are not.
 
+## Commands
+
+Every script in `scripts/` prints its synopsis, options and where it runs with
+`--help`; this is the map. Several use relative paths, so run them from the repo
+root unless `--help` says otherwise.
+
+| group        | command             | for                                                      |
+| ------------ | ------------------- | -------------------------------------------------------- |
+| entry points | `install-software`  | provision the machine: apt repositories, packages, tools |
+|              | `install-dotfiles`  | link the configs and the unpacked secrets into `$HOME`   |
+|              | `install-host`      | units, ssh keys and `authorized_keys`, by tag            |
+|              | `setup-claude`      | Claude Code's instructions, skills, settings, MCP        |
+| bootstrap    | `deploy-server`     | create a Hetzner server that provisions itself           |
+|              | `list-server-types` | Hetzner server types and prices in nbg1                  |
+|              | `mount-zfs`         | unlock and mount `/chome` on a cloud host                |
+|              | `start-tailscale`   | join the tailnet                                         |
+| secrets      | `pack-secrets`      | encrypt `secrets/` into `scripts/unpack-secrets`         |
+|              | `publish-secrets`   | upload it to OneDrive                                    |
+|              | `fetch-secrets`     | download it on another host                              |
+|              | `unpack-secrets`    | extract it (generated, not in git)                       |
+| backup       | `backup-cloud`      | restic backup of `/chome/santini`, run by a timer        |
+|              | `backup-prune`      | inspect and thin that restic repository                  |
+| maintenance  | `update-system`     | upgrade packages and `/usr/local` tools, here or all     |
+| tablet       | `empower`           | ssh masters, agent forwarding and tunnels to the hosts   |
+| misc         | `2fa`               | current TOTP codes                                       |
+
 ## Deployment is explicit symlinks, not a convention
 
 `scripts/install-dotfiles` is a hand-written bash script. Its one primitive —

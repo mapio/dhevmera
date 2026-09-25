@@ -11,7 +11,7 @@ run: **an unpack replaces the receiving host's `secrets/` wholesale, `.git`
 included.** Anything that host held and the snapshot does not is gone, committed
 or not.
 
-That is why this is a ballet and not a command. `CLAUDE.md` carries the
+That is why this is a ballet and not a command. `README.md` carries the
 reasoning; this is the order of steps.
 
 ## Before packing anything
@@ -33,7 +33,7 @@ refreshed on use, so a token-only diff is nothing to reconcile.
 
 A secrets change that has to travel is the moment to clear anything queued for
 exactly that reason, since the round trip is the cost, not the edit. Check
-`CLAUDE.md` for what is waiting, and mention what you took out rather than
+`README.md` for what is waiting, and mention what you took out rather than
 proposing it as its own job.
 
 ## The sequence

@@ -17,7 +17,7 @@ earns its keep — check actual spend with
 **Why:** the choice was made on one afternoon of testing, and both the price and
 the free roster move.
 
-**How to apply:** `CLAUDE.md` carries what that afternoon measured, including
-the cheaper and faster alternative he passed over for headroom on harder
-questions. That trade is the thing to re-test before switching; do not reopen it
-on price alone.
+**How to apply:** `dotfiles/aichat/README.md` carries what that afternoon
+measured, including the cheaper and faster alternative he passed over for
+headroom on harder questions. That trade is the thing to re-test before
+switching; do not reopen it on price alone.

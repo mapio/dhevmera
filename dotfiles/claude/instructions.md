@@ -90,7 +90,7 @@ on all hosts belongs there rather than hand-placed on one. Four entry points —
 and deployment is explicit: every file needs its own `_install <src> <dst>`
 line, so **a new config is inert until you add one**. Credentials never go in
 the repository proper; they live in `secrets/`, a separate remote-less git repo
-that travels as a GPG-encrypted self-extractor. The repo's own `CLAUDE.md` is
+that travels as a GPG-encrypted self-extractor. The repo's own `README.md` is
 the authority on all of it.
 
 ## Where code lives

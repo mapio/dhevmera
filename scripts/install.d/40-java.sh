@@ -17,7 +17,7 @@ if [ -s "$HOME/.sdkman/bin/sdkman-init.sh" ]; then
 else
 
   # SDKMAN!'s installer appends its own init snippet to ~/.bashrc, a symlink into this
-  # repo (see the vendor-installer gotcha in CLAUDE.md). There is no flag to stop it; it
+  # repo (see the vendor-installer gotcha in README.md). There is no flag to stop it; it
   # skips the append only when 'sdkman-init.sh' already greps out of the file, which is
   # precisely what shell/bashrc's existing source line provides. Keep that line where it
   # is or every run of this fragment dirties the shared dotfiles for every host.
