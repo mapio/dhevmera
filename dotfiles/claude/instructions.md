@@ -108,18 +108,6 @@ repository you have not pushed to before.
 - **Netlify and Cloudflare** — where the websites are published (`fedeuni` on
   Cloudflare Pages via `wrangler pages deploy`, behind Cloudflare Access).
   Deploy credentials live in a gitignored `.env` and are never copied elsewhere.
-- **Encrypted remotes on a public host** — the court expert reports under
-  `Activities/Consulting/perizie/` on svm. `rgn-58559-2019` pushes to
-  `gcrypt::git@gitlab.com:carlobellettini/...`: git-remote-gcrypt, so gitlab.com
-  holds only an encrypted blob readable by the GPG keys listed in
-  `remote.origin.gcrypt-participants`. `rgn-42257-2013` is a plain private
-  Bitbucket remote with no such protection.
-
-**Never "fix" a `gcrypt::` remote URL.** Stripping that prefix, or re-adding the
-remote without it, publishes a court expert report in plaintext to a public host
-on the next push. Leave `remote.origin.gcrypt-participants` alone as well: it is
-the decryption access list, not configuration noise. These repositories are
-confidential in their own right, separately from the QBT NDA.
 
 **The NDA boundary is one-way.** Client code, data, logs, device identifiers,
 measurements and document text never leave `gitlab.qbt.cluster` for a GitHub
