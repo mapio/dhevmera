@@ -46,6 +46,10 @@ to route around it.
    under `dotfiles/systemd/` needs `./scripts/install-units` on the hosts
    carrying that tag, then `systemctl --user daemon-reload` and `enable` by
    hand. Never `disable` or `reenable` a unit this repo deploys.
+6. **Claude setup.** A change that removes or renames a skill, or touches
+   `scripts/setup-claude`, needs `./scripts/setup-claude` on each host with
+   Claude Code (not the tablet). If it reports a stale skill link, ask Massimo
+   before re-running it with `--prune`; never prune on your own.
 
 ## Verify before declaring it done
 
@@ -54,6 +58,7 @@ Per host:
 ```bash
 find ~/.config/systemd/user -xtype l    # dangling unit links; want no output
 ls -la ~/.claude/CLAUDE.md              # a symlink into the repo, never a plain file
+find ~/.claude/skills -xtype l          # dangling skill links; want no output
 for d in dotfiles/claude/skills/*/; do    # from the repo root; want no output
   [ "$(readlink ~/.claude/skills/"$(basename "$d")")" = "$(pwd -P)/${d%/}" ] || echo "unlinked: $d"
 done

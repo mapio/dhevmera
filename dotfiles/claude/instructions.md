@@ -72,7 +72,8 @@ and aliases are already in `~/.ssh/config`. Default user is `santini`.
   on the client VPN (`tun0`).
 - **mercurio** (`mercurio.srv.di.unimi.it`) — where his mail lives: `~/Maildir`
   is the real mailbox, NFS-shared with the university IMAP server. To search or
-  read it, use the `search-mail` skill.
+  read it, use the `manent` MCP tools: its index is on svm, read-only elsewhere.
+  Mail is private and partly QBT material: quote only what the task needs.
 - **pico**, `*.qbt.cluster`, `gitlab.qbt.cluster` — client infrastructure behind
   the VPN, reached `ProxyJump parsifal` except when directly reachable, which
   the config probes for. Shared production, running other people's services.
@@ -84,13 +85,13 @@ agreed window. Write the procedure and hand it over rather than running it.
 **`dhevmera`** (`github.com:mapio/dhevmera`) is not a host but what provisions
 them: the configs, dotfiles and general-purpose scripts he wants on *every*
 machine, plus the systemd `--user` units each one runs. Anything meant to exist
-on all hosts belongs there rather than hand-placed on one. Three entry points —
-`scripts/install-software`, `install-dotfiles`, `install-units` — and deployment
-is explicit: every file needs its own `_install <src> <dst>` line, so **a new
-config is inert until you add one**. Credentials never go in the repository
-proper; they live in `secrets/`, a separate remote-less git repo that travels as
-a GPG-encrypted self-extractor. The repo's own `CLAUDE.md` is the authority on
-all of it.
+on all hosts belongs there rather than hand-placed on one. Four entry points —
+`scripts/install-software`, `install-dotfiles`, `install-units`, `setup-claude`
+— and deployment is explicit: every file needs its own `_install <src> <dst>`
+line, so **a new config is inert until you add one**. Credentials never go in
+the repository proper; they live in `secrets/`, a separate remote-less git repo
+that travels as a GPG-encrypted self-extractor. The repo's own `CLAUDE.md` is
+the authority on all of it.
 
 ## Where code lives
 

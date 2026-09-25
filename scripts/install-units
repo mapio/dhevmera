@@ -51,7 +51,7 @@ if [ $# -gt 0 ]; then
   TAGS=("$@")
   TAGSRC="the command line"
 elif [ -r "$TAGFILE" ]; then
-  mapfile -t TAGS < <(sed -e 's/#.*//' -e '/^[[:space:]]*$/d' -e 's/[[:space:]]//g' "$TAGFILE")
+  mapfile -t TAGS < <(read_tags "$TAGFILE")
   TAGSRC="$TAGFILE"
 else
   log "No tags for this host"

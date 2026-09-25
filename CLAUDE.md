@@ -1,9 +1,10 @@
 # Δημέρα
 
-Config that roams across ephemeral dev boxes. Three entry points: `scripts/install-software`
-provisions the machine, `scripts/install-dotfiles` links this repo's files into `$HOME`, and
-`scripts/install-units` links the systemd `--user` units this particular host should run.
-The first two are host-agnostic; the third is not, which is the whole reason it is separate.
+Config that roams across ephemeral dev boxes. Four entry points: `scripts/install-software`
+provisions the machine, `scripts/install-dotfiles` links this repo's files into `$HOME`,
+`scripts/install-units` links the systemd `--user` units this particular host should run,
+and `scripts/setup-claude` does the Claude Code setup a symlink cannot. The first two are
+host-agnostic; the others are not.
 
 ## Deployment is explicit symlinks, not a convention
 
@@ -90,6 +91,15 @@ Global skills ship the same way: `dotfiles/claude/skills/<name>/` is linked to
 own `_install` line, never the whole directory, because `~/.claude/skills/` also holds
 entries this repo does not own (`synced/`). A skill about one repository stays in that
 repository's `.claude/skills/`, as `roam` and `secret-ballet` do here.
+
+`scripts/setup-claude [--dry-run] [--prune]` covers what a symlink cannot. It registers the
+MCP servers at user scope through the `claude` CLI — manent with its full tools on a host
+tagged `svm`, `--read-only` over ssh to svm elsewhere — checks that `~/.claude/CLAUDE.md` is
+still a link to `instructions.md`, and reports skill links left dangling by a skill removed
+from the repo. It removes those only under `--prune`, run by hand: `install-dotfiles` never
+prunes, since a script that installs into a directory cannot know what else there is still
+wanted. A host without Claude Code, such as the tablet, is skipped outright, so its own
+dangling skill links go unreported; they are harmless there.
 
 `.claude/skills/` names the two procedures this layout implies but nothing here states as
 a sequence: **`roam`** lands a change on every host, **`secret-ballet`** is the pack,

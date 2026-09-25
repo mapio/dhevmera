@@ -35,9 +35,9 @@ host roles, paths — was verified against the machines rather than recalled.
 
 `skills/<name>/` holds the global skills, each linked into `~/.claude/skills/`.
 They are the answer to the length problem above: when a rule is really a
-procedure — how to query mail, say — the instructions keep only the fact that
-cues it ("mail is on mercurio, use the `search-mail` skill"), and the steps sit
-in a skill, whose body costs tokens only in the sessions that use it.
+procedure, the instructions keep only the fact that cues it ("`/sepolcro`
+readies a session to be cleared"), and the steps sit in a skill, whose body
+costs tokens only in the sessions that use it.
 
 ## The greeting, `lazzaro` and `/sepolcro`
 

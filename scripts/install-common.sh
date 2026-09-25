@@ -1,4 +1,4 @@
-# Sourced by install-dotfiles and install-units. Defines only colours and helpers - no
+# Sourced by install-dotfiles, install-units and setup-claude. Defines only colours and helpers - no
 # side effects - so each caller can set up its own logfile and fd 3 first.
 #
 # _install lives here rather than in either script because it is *the* deployment
@@ -20,6 +20,9 @@ log()      { printf "\n%b\n\n" "${BLUE}${BOLD}==> $*${RESET}"; }
 ok()       { printf "%b\n" "${GREEN}✔ $*${RESET}"; }
 warn()     { printf "%b\n" "${YELLOW}⚠ $*${RESET}"; }
 die()      { printf "%b\n" "${RED}✖ $*${RESET}" >&2; exit 1; }
+
+# The tags a host declares in ~/.dhevmera-tags: one per line, blank lines and # comments ignored.
+read_tags() { sed -e 's/#.*//' -e '/^[[:space:]]*$/d' -e 's/[[:space:]]//g' "$1"; }
 
 _install() {
   src="$1"

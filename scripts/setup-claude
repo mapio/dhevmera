@@ -1,0 +1,80 @@
+#!/usr/bin/env bash
+
+set -eo pipefail
+
+# Claude Code setup that is not a symlink, so install-dotfiles cannot express it:
+# MCP servers registered through the claude CLI, and checks on what it links.
+#
+#   setup-claude [--dry-run] [--prune]
+#
+# Skill links left dangling by a skill removed from the repo are only reported, unless
+# --prune is given. Hosts without Claude Code (the tablet: Termux cannot run it) are skipped.
+
+RUN=
+PRUNE=
+for arg in "$@"; do
+  case "$arg" in
+    --dry-run) RUN=echo ;;
+    --prune) PRUNE=yes ;;
+    *) echo "usage: setup-claude [--dry-run] [--prune]" >&2; exit 2 ;;
+  esac
+done
+
+LOGFILE="$HOME/.setup-claude.log"
+exec 3>&1
+exec > >(tee -a "$LOGFILE") 2>&1
+
+source "$(dirname "${BASH_SOURCE[0]}")/install-common.sh"
+
+DOTFILES="$(cd "$(dirname "${BASH_SOURCE[0]}")/../dotfiles" && pwd -P)"
+TAGFILE="$HOME/.dhevmera-tags"
+
+if ! command -v claude >/dev/null; then
+  log "Claude Code is not installed here: nothing to do"
+  exit 0
+fi
+
+has_tag() {
+  [ -r "$TAGFILE" ] && read_tags "$TAGFILE" | grep -qx "$1"
+}
+
+log "Checking the global instructions"
+
+want="$DOTFILES/claude/instructions.md"
+if [ "$(readlink "$HOME/.claude/CLAUDE.md")" = "$want" ]; then
+  ok "~/.claude/CLAUDE.md -> $want"
+else
+  warn "~/.claude/CLAUDE.md is not a link to $want: carry any changes into the repo, then re-run install-dotfiles"
+fi
+
+log "Checking for skill links whose source left the repo"
+
+for link in "$HOME"/.claude/skills/*; do
+  target=$(readlink "$link") || continue
+  case "$target" in
+    "$DOTFILES"/claude/skills/*) ;;
+    *) continue ;;
+  esac
+  if [ -e "$link" ]; then
+    continue
+  elif [ -n "$PRUNE" ]; then
+    $RUN rm "$link"
+    ok "removed: $link"
+  else
+    warn "stale: $link -> $target (re-run with --prune to remove it)"
+  fi
+done
+
+log "Registering MCP servers"
+
+# manent's index lives on svm: the full tools there, read-only over ssh elsewhere.
+MANENT=/chome/santini/Activities/Programming/manent/.venv/bin/manent
+if has_tag svm; then
+  manent=("$MANENT" mcp --ssh-host svm)
+else
+  manent=(ssh -o BatchMode=yes svm "$MANENT" mcp --read-only --ssh-host svm)
+fi
+# stderr only: under --dry-run, stdout is the echoed command.
+$RUN claude mcp remove -s user manent 2>/dev/null || true
+$RUN claude mcp add -s user manent -- "${manent[@]}"
+ok "manent: ${manent[*]}"
