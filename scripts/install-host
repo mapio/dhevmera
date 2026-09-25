@@ -267,7 +267,8 @@ done
 
 # Restores the backup named in PENDING unless --confirm has claimed PENDING first: mv
 # makes either claim atomic. A file of its own, because systemd-run would expand the $s.
-REVERT_SH='sleep "$4"
+REVERT_SH='umask 077
+sleep "$4"
 mv "$2" "$2.firing" 2>/dev/null || exit 0
 b=$(cat "$2.firing")
 if [ "$b" = - ]; then rm -f "$1"; else cp -p "$b" "$1.revert" && mv -f "$1.revert" "$1"; fi
@@ -295,6 +296,8 @@ fix_mode() {
 
 authorized_keys() {
   local keys fps dups conf confs c f managed sock backup sh baks
+  # Everything created in ~/.ssh from here is owner-only, whatever the host's umask.
+  umask 077
 
   if [ -e "$AK.reverted" ]; then
     warn "a previous authorized_keys change was reverted at $(stat -c %y "$AK.reverted")"
