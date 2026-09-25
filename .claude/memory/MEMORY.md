@@ -6,5 +6,3 @@
   per-host config, split it into per-tag files; no merge tool unless asked
 - [gpg needs his terminal](gpg-passphrase-needs-real-terminal.md) — `!` gave
   pack-secrets no TTY; check for a partial unpack-secrets afterwards
-- [interim-doto skill](interim-doto-skill.md) — he wants to discuss it; the
-  reminder he asked for was never recorded (2026-09-25)

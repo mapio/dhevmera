@@ -39,6 +39,11 @@ procedure, the instructions keep only the fact that cues it ("`/sepolcro`
 readies a session to be cleared"), and the steps sit in a skill, whose body
 costs tokens only in the sessions that use it.
 
+`/interim-note` and `/interim-act` split taking an idea from acting on it. Told
+mid-flow, an idea tends to fork the work to follow it; left untold, it is
+forgotten. Both set `disable-model-invocation`, so `/sepolcro` reads
+`interim-act`'s file rather than invoking it.
+
 ## The greeting, `lazzaro` and `/sepolcro`
 
 The genie line is a canary for the payload not being deployed, but it cannot

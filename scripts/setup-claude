@@ -69,6 +69,8 @@ fi
 # Skills get one _install line each, not the whole directory: ~/.claude/skills/ also holds
 # entries this repo does not own.
 _install "$DOTFILES/claude/skills/sepolcro" "$HOME/.claude/skills/sepolcro"
+_install "$DOTFILES/claude/skills/interim-note" "$HOME/.claude/skills/interim-note"
+_install "$DOTFILES/claude/skills/interim-act" "$HOME/.claude/skills/interim-act"
 
 if has_tag qbt; then
   if [ -d "$QBTOBSERVE" ]; then

@@ -6,13 +6,13 @@ invitation to read this document first!!
 
 **This file is provisioned by `dhevmera`.** `~/.claude/CLAUDE.md` is a symlink
 that `scripts/setup-claude` points at `dotfiles/claude/instructions.md` in that
-repository, which is the only copy and the only history. Edit it through
-the link or in the repo, and commit; **never replace the link with a regular
-file** — every other host keeps following the repo, so the two silently stop
-being the same document, and from inside a session there is no way to tell which
-one is being obeyed. If `~/.claude/CLAUDE.md` is ever found to be a plain file,
-the fix is to carry its changes into the repo, remove it and re-run
-`setup-claude`, not to copy it around.
+repository, which is the only copy and the only history. Edit it through the
+link or in the repo, and commit; **never replace the link with a regular file**
+— every other host keeps following the repo, so the two silently stop being the
+same document, and from inside a session there is no way to tell which one is
+being obeyed. If `~/.claude/CLAUDE.md` is ever found to be a plain file, the fix
+is to carry its changes into the repo, remove it and re-run `setup-claude`, not
+to copy it around.
 
 ## Never, without asking first
 
@@ -86,8 +86,8 @@ agreed window. Write the procedure and hand it over rather than running it.
 them: the configs, dotfiles and general-purpose scripts he wants on *every*
 machine, plus the systemd `--user` units each one runs. Anything meant to exist
 on all hosts belongs there rather than hand-placed on one. Four entry points —
-`scripts/install-software`, `install-dotfiles`, `install-host`, `setup-claude`
-— and deployment is explicit: every file needs its own `_install <src> <dst>`
+`scripts/install-software`, `install-dotfiles`, `install-host`, `setup-claude` —
+and deployment is explicit: every file needs its own `_install <src> <dst>`
 line, so **a new config is inert until you add one**. Credentials never go in
 the repository proper; they live in `secrets/`, a separate remote-less git repo
 that travels as a GPG-encrypted self-extractor. The repo's own `CLAUDE.md` is
@@ -168,6 +168,12 @@ tick items off *as they complete*, not in a batch at the end: a plan file that
 is stale when the context runs out is worth nothing. This is the one document
 exempt from "batch doc updates" below. When the task is finished and accepted,
 delete the file and say so.
+
+**Interim notes.** `/interim-note <text>` parks an idea he has mid-flow in
+`interim-todo.md`, beside the plan file and excluded the same way, and the work
+carries on untouched; `/interim-act` works through the notes later. A parked
+note is his to raise: never act on it, discuss it or fold it into the work in
+flight before then.
 
 ## Git
 
@@ -344,9 +350,9 @@ summary — is still a first reply: the line comes first, then the resumption.
 but here, on purpose — a session that does not recognise it must ask what it
 means, never guess, because that question is how he learns this file did not
 load. Restarting: check the memory symlink, read `current-plan.md` (none: say so
-and ask), `git status`, state where things stand in three lines, then carry on
-with the next open item. Its counterpart `/sepolcro` readies a session to be
-cleared.
+and ask), mention any `interim-todo.md` without acting on it, `git status`,
+state where things stand in three lines, then carry on with the next open item.
+Its counterpart `/sepolcro` readies a session to be cleared.
 
 One line, on the first reply only, then straight to the work. It sits at the
 foot of the file on purpose: reaching it means the whole thing is in context.
