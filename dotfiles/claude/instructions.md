@@ -187,8 +187,10 @@ delete the file and say so.
   Either ask him to refresh the agent and wait for confirmation (he has a script
   to revive the gpg and ssh agents), or, when pinentry has no TTY in this
   session at all, write the message to a file, stage the work, and hand him
-  `! git commit -F <msgfile>` to run: the `!` prefix gives pinentry a TTY, and
-  the file keeps a long message intact.
+  `git commit -F <msgfile>` to run in his own terminal; the file keeps a long
+  message intact. Never offer the `!` prefix for anything that prompts for a
+  passphrase: it gives gpg no usable TTY, and a half-run command can leave
+  debris behind.
 - **Commit straight to the default branch** in his own repositories. They are
   single-author; a feature branch adds a merge step and no review. This
   overrides the usual "if on the default branch, branch first". His repositories
