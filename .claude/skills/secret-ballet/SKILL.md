@@ -51,13 +51,15 @@ Run all of it from the repo root — these scripts use relative paths.
    being replaced by the older copy on the remote. Read the refusal before
    clearing it.
 5. **Unpack**: `mv secrets secrets.old` first — `unpack-secrets` refuses when
-   `secrets/` exists — then `./scripts/unpack-secrets <secrets root>` and enter
-   the passphrase. It chmods the tree 700 itself.
+   `secrets/` exists — then `./scripts/unpack-secrets` and enter the passphrase.
+   A snapshot packed before `unpack-secrets` derived its root still defaults to
+   `/chome/santini/dhevmera`: off svm, pass it the repo root. It chmods the tree
+   700 itself.
 6. **Relink only if the set of files changed.** `_install` links a path, not an
    inode, so an unpack that restores the same filenames leaves every existing
    link resolving correctly and needs nothing. A secret that was *added* or
-   *renamed* needs its `_install` line and a run of
-   `./scripts/install-dotfiles <secrets root>` from the repo root.
+   *renamed* needs its `_install` line and a run of `./scripts/install-dotfiles`
+   from the repo root.
 7. **Verify, then delete `secrets.old`.** Not before: it is the only copy of
    what that host had.
 

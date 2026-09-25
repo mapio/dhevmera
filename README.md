@@ -28,9 +28,8 @@ single most common mistake when extending this repo. Consequences worth knowing:
 - Repo filenames drop the leading dot and may be renamed at the destination
   (`misc/hatch.toml` → `~/.config/hatch/config.toml`, `config/googleauth.json` →
   `~/.secrets.json`).
-- `--dry-run` as the first argument sets `RUN=echo`. The next argument is the
-  secrets root, defaulting to `/chome/santini/dhevmera` — svm's layout, not
-  `$HOME`. On a normal host pass `"$HOME/dhevmera"`.
+- `--dry-run` sets `RUN=echo`. The secrets root is `secrets/` in the checkout
+  the script runs from, on every host; `unpack-secrets` extracts there too.
 - Sentinel: `~/.install-dotfiles.complete`; log: `~/.install-dotfiles.log`.
 
 A handful of steps cannot be a symlink and sit at the end of the script as plain
@@ -305,12 +304,11 @@ sudo is required, and none of this works on Termux.
   `ytwit-bot.service`, which was already canonical. Those links sit beside the
   `Activities/` tree, so they resolve whenever a unit could run at all — the
   point is not availability but that `x/` is a personal shortcut layout, free to
-  be reshuffled, while the `Activities/` paths are the real ones. Note this
-  makes the secrets-root default `/chome/santini/dhevmera` a symlink too; it
-  works, it is simply not what a unit should name. For a related reason the
-  install scripts resolve their roots with `pwd -P`: `_install` links `realpath`
-  of the source, and a logical root would not match it if the repo were reached
-  through a symlink — which would silently defeat the prune's prefix test.
+  be reshuffled, while the `Activities/` paths are the real ones. For a related
+  reason the install scripts resolve their roots with `pwd -P`: `_install` links
+  `realpath` of the source, and a logical root would not match it if the repo
+  were reached through a symlink — which would silently defeat the prune's
+  prefix test.
 - **herdr lives in `/usr/local/bin`, so it cannot update itself.**
   `herdr update` rewrites its own binary in place, which needs root there;
   `67-herdr.sh` installs it and `update-system` upgrades it, both through

@@ -2,18 +2,17 @@
 
 set -eo pipefail
 
-# should dry run?
+RUN=
+for arg in "$@"; do
+  case "$arg" in
+    --dry-run) RUN=echo ;;
+    *) echo "usage: install-dotfiles [--dry-run]" >&2; exit 2 ;;
+  esac
+done
 
-if [ "${1:-}" = "--dry-run" ]; then
-  RUN=echo
-  shift
-else
-  RUN=
-fi
-
-# where are secrets?
-
-SECRETS="${1:-/chome/santini/dhevmera}/secrets"
+# secrets/ is a separate repo nested in this one, wherever this one is checked out
+REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd -P)"
+SECRETS="$REPO/secrets"
 
 # Keep a log of the setup process
 
@@ -25,7 +24,7 @@ exec > >(tee -a "$LOGFILE") 2>&1
 
 source "$(dirname "${BASH_SOURCE[0]}")/install-common.sh"
 
-DOTFILES="$(cd "$(dirname "${BASH_SOURCE[0]}")/../dotfiles" && pwd -P)"
+DOTFILES="$REPO/dotfiles"
 
 if [ -d $SECRETS ]; then
   log "Installing secrets from '$SECRETS'"

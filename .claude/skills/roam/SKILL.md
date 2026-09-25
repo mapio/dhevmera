@@ -12,11 +12,11 @@ you.
 
 ## The hosts
 
-| host     | repo                                                  | secrets root for the scripts        |
-| -------- | ----------------------------------------------------- | ----------------------------------- |
-| parsifal | `~/dhevmera`                                          | `"$HOME/dhevmera"`                  |
-| svm      | `/chome/santini/Activities/Programming/dhevmera`      | default (`/chome/santini/dhevmera`) |
-| tablet   | `~/dhevmera` (Termux, `$HOME` is not `/home/santini`) | `"$HOME/dhevmera"`                  |
+| host     | repo                                                  |
+| -------- | ----------------------------------------------------- |
+| parsifal | `~/dhevmera`                                          |
+| svm      | `/chome/santini/Activities/Programming/dhevmera`      |
+| tablet   | `~/dhevmera` (Termux, `$HOME` is not `/home/santini`) |
 
 svm's repo is also reachable as `/chome/santini/dhevmera`, a symlink. Pull
 through whichever you like, but anything that records a path — a symlink target,
@@ -39,15 +39,14 @@ to route around it.
 4. **Relink**, but only if the change added, renamed or moved something that
    `install-dotfiles` deploys. Editing a file already linked needs no relink —
    the symlink is to the file, so the pull alone did it. When a relink is
-   needed, run `./scripts/install-dotfiles <secrets root>` from the repo root on
-   that host, or make the single `ln -sfn` by hand when only one destination is
-   affected.
+   needed, run `./scripts/install-dotfiles` from the repo root on that host, or
+   make the single `ln -sfn` by hand when only one destination is affected.
 5. **Tagged things are separate.** `install-dotfiles` does not touch them. A
    change under `dotfiles/systemd/` or `dotfiles/ssh/{keys,authorized_keys}/`
    needs `./scripts/install-host` on the hosts carrying that tag.
-   - Units: it reloads and lists what differs from the repo; `--activate` applies
-     that. Ask before `--activate` where a restart would interrupt a running
-     service. Never `disable` or `reenable` a unit this repo deploys.
+   - Units: it reloads and lists what differs from the repo; `--activate`
+     applies that. Ask before `--activate` where a restart would interrupt a
+     running service. Never `disable` or `reenable` a unit this repo deploys.
    - authorized_keys: when it changed, confirm it from another host within ten
      minutes, over a new connection:
      `ssh -o ControlMaster=no -o ControlPath=none <host> <repo>/scripts/install-host --confirm`.
