@@ -428,9 +428,9 @@ accepted costs: sudo is required, and none of this works on Termux.
   `WorkingDirectory` are both under `/chome`, present on one machine only. So units are
   filed by [tag](#tags-tell-one-host-from-another) in `dotfiles/systemd/<tag>/` and linked
   by `scripts/install-host`. A host carrying several tags gets the union of their units;
-  `install-host [--dry-run] [tag...]` overrides `~/.dhevmera-tags` from the command line.
-  One unit name claimed by two tags is fatal — and checked before anything on disk is
-  replaced.
+  `install-host [--dry-run] [--activate] [tag...]` overrides `~/.dhevmera-tags` from the
+  command line. One unit name claimed by two tags is fatal — and checked before anything on
+  disk is replaced.
 - **`install-host` prunes**, so dropping a unit from the repo or moving it to a tag this
   host does not carry actually removes it from `~/.config/systemd/user/`. Three conditions
   gate every removal, confining it to links the script itself made: the entry is a symlink
@@ -441,33 +441,41 @@ accepted costs: sudo is required, and none of this works on Termux.
   Pruning does **not** undo a previous `enable`: that leaves its own link under
   `*.target.wants/`, which is systemd's to manage, so the script prints the
   `systemctl --user disable` lines instead of touching them.
-- **`install-host` links only; it does not reload or enable anything.** After adding or
-  changing a unit, run `systemctl --user daemon-reload` and
-  `systemctl --user enable --now <name>.timer` yourself, per host — same spirit as the
-  crontab entries, which this repo also never scripts. The script prints the exact commands,
-  listing only units that carry an `[Install]` section: `backup-cloud.service`,
+- **`install-host` always reloads; it changes running state only under `--activate`.**
+  A linked unit is not a running one, so after linking it runs `systemctl --user
+  daemon-reload`, which starts, stops and restarts nothing, and then compares what systemd
+  runs with the repo: a unit not enabled, a `.wants` link missing or pointing elsewhere,
+  an enabled unit not active, a service still running an older definition. Each mismatch
+  is printed with its command; `--activate` runs them — plain `enable`, `start`,
+  `restart`, never `disable` or `reenable`. Two things are left alone. A timer needs no
+  action: the reload alone reschedules it (measured), and the oneshot it pulls in uses the
+  new definition on its next run. And if a unit the script does not own is loaded with a
+  pending edit, it does not reload at all, since that would apply someone else's change.
+  After the reload systemd no longer says which running services are stale, so the script
+  notes them first in `~/.install-host.restart` and drops each once it has restarted;
+  unit-file mtimes would not do, being newer than the start on any fresh checkout. Only
+  unit files are compared: a code change in what a unit runs is that repo's to deploy.
+  Only units with an `[Install]` section are enabled: `backup-cloud.service`,
   `parsifal-sync.service` and `manent-verify.service` have none on purpose, since it is
   their `.timer` that gets enabled and they are pulled in as its target. A `--user` timer
   only fires on schedule while logged in unless lingering is on (`loginctl enable-linger
-  santini`); `backup-cloud.timer` and `parsifal-sync.timer` (each replacing an old cron
-  line) and `manent-verify.timer` all rely on that being enabled.
+  santini`), which the script warns about and never sets: `backup-cloud.timer`,
+  `parsifal-sync.timer` and `manent-verify.timer` all rely on it.
 - **Never `systemctl --user disable` or `reenable` a unit this repo deploys — use plain
   `enable`.** Everything `install-host` puts in `~/.config/systemd/user/` is a *linked*
   unit (a symlink pointing outside the unit directories, which is why `is-enabled` reports
-  `linked` rather than `disabled` for the three oneshots). For a linked unit `disable` removes
-  **the symlink itself**, not merely the enablement, so `reenable` deletes the unit and then
-  fails to re-enable what is no longer there — leaving it neither linked nor enabled. This
-  happened on svm during the move to tags: `ytwit-bot.service`, `backup-cloud.timer` and
-  `parsifal-sync.timer` all lost their symlinks in one command. Recovery is `install-host`
-  followed by `systemctl --user enable <name>`. Note `disable` does *not* stop a running
-  unit, so the damage is silent until the next boot.
+  `linked` rather than `disabled` for the three oneshots). For a linked unit `disable`
+  removes **the symlink itself**, not merely the enablement, so `reenable` deletes the
+  unit and then fails to re-enable what is no longer there — leaving it neither linked nor
+  enabled. This happened on svm during the move to tags: `ytwit-bot.service`,
+  `backup-cloud.timer` and `parsifal-sync.timer` all lost their symlinks in one command.
+  Recovery is `install-host --activate`. Note `disable` does *not* stop a running unit, so
+  the damage is silent until the next boot.
 - **`enable` writes `*.target.wants/<name>` pointing straight at the file in this repo**, not
-  at the copy in `~/.config/systemd/user/`. Those links are systemd's, outside what
-  `install-host` manages, so it cannot repair them: **moving a unit between tags, or any
-  change to its path in the repo, dangles the `.wants` link and needs a manual
-  `systemctl --user enable` afterwards.** `install-host` relinking the unit is not enough —
-  it fixes the entry in `~/.config/systemd/user/` while the enablement still points at the
-  old path. Check with `find ~/.config/systemd/user -xtype l`, which should print nothing.
+  at the copy in `~/.config/systemd/user/`. So **moving a unit between tags, or any change
+  to its path in the repo, dangles the `.wants` link**: relinking the unit fixes the entry
+  in `~/.config/systemd/user/` while the enablement still points at the old path.
+  `install-host` reports it, and `--activate` repairs it with a plain `enable`.
 
 ## Read the global instructions first
 

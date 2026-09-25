@@ -14,7 +14,7 @@ set -eo pipefail
 # ephemeral enough that their names are not worth encoding. A host declares which tags it
 # carries, and may carry several; this script installs the union.
 #
-#   install-host [--dry-run] [--prune] [--adopt] [tag...]
+#   install-host [--dry-run] [--prune] [--adopt] [--activate] [tag...]
 #   install-host --confirm
 #
 # Tags come from the arguments, or - with none - from ~/.dhevmera-tags, one per line,
@@ -24,13 +24,14 @@ set -eo pipefail
 #
 # Units no longer claimed are pruned; key links only with --prune. authorized_keys is
 # generated, and a change to it reverts itself unless confirmed: see that section.
-# Enabling units stays manual and per host, deliberately: see the reminder printed at the
-# end.
+# Units are always reloaded, and what systemd runs is checked against the repo; changing
+# running state - enable, start, restart - needs --activate.
 
 RUN=
 PRUNE=
 ADOPT=
 CONFIRM=
+ACTIVATE=
 ARGS=()
 for arg in "$@"; do
   case "$arg" in
@@ -38,7 +39,8 @@ for arg in "$@"; do
     --prune) PRUNE=yes ;;
     --adopt) ADOPT=yes ;;
     --confirm) CONFIRM=yes ;;
-    -*) echo "usage: install-host [--dry-run] [--prune] [--adopt] [tag...] | --confirm" >&2; exit 2 ;;
+    --activate) ACTIVATE=yes ;;
+    -*) echo "usage: install-host [--dry-run] [--prune] [--adopt] [--activate] [tag...] | --confirm" >&2; exit 2 ;;
     *) ARGS+=("$arg") ;;
   esac
 done
@@ -58,6 +60,7 @@ UNITS="$DOTFILES/systemd"
 DEST="$HOME/.config/systemd/user"
 KEYS="$DOTFILES/ssh/keys"
 TAGFILE="$HOME/.dhevmera-tags"
+RESTART="$HOME/.install-host.restart"
 
 AK="$HOME/.ssh/authorized_keys"
 PENDING="$AK.pending"
@@ -189,6 +192,117 @@ else
   for name in "${pruned[@]}"; do
     echo "  systemctl --user disable $name"
   done
+fi
+
+# ----------------------------------------------------------------------- activation
+
+# A linked unit is not a running one: make systemd's state match the repo, or say where it
+# does not. Reloading touches no process, so it always runs; enable, start and restart
+# change running state and wait for --activate. The unit files are all this can see: a
+# code change in what a unit runs is that repo's own deploy step.
+
+activate_units() {
+  if ! systemctl --user show-environment >/dev/null 2>&1; then
+    warn "no systemd --user manager here - units linked, not activated"
+    return
+  fi
+
+  # The reload would also apply a pending edit to a unit this script does not own: hold off.
+  local unit name foreign=()
+  while read -r name; do
+    case " ${found[*]##*/} " in *" $name "*) continue ;; esac
+    if [ "$(systemctl --user show -p NeedDaemonReload --value -- "$name")" = yes ]; then
+      foreign+=("$name")
+    fi
+  done < <(systemctl --user list-units --all --plain --no-legend | sed 's/^● //' | awk '{print $1}')
+
+  if [ ${#foreign[@]} -gt 0 ]; then
+    warn "not reloading: units this script does not own have pending edits: ${foreign[*]}"
+    warn "reload yourself once those edits are meant to apply, then re-run this"
+    return
+  fi
+  # A running service keeps the definition it started with, and after the reload nothing
+  # in systemd says so any more: note it now, and forget it once the service has restarted.
+  local now since kept=()
+  now="$(date +%s)"
+  for unit in "${found[@]}"; do
+    name="$(basename "$unit")"
+    if [[ $name == *.service ]] &&
+       [ "$(systemctl --user show -p ActiveState --value -- "$name")" = active ] &&
+       [ "$(systemctl --user show -p NeedDaemonReload --value -- "$name")" = yes ]; then
+      kept+=("$name $now")
+    fi
+  done
+  if [ -r "$RESTART" ]; then
+    while read -r name t; do
+      since="$(systemctl --user show --timestamp=unix -p ActiveEnterTimestamp --value -- "$name")"
+      case " ${found[*]##*/} " in *" $name "*) ;; *) continue ;; esac
+      [ "$(systemctl --user show -p ActiveState --value -- "$name")" = active ] || continue
+      [ "${since#@}" -lt "$t" ] || continue
+      case " ${kept[*]} " in *" $name "*) ;; *) kept+=("$name $t") ;; esac
+    done < "$RESTART"
+  fi
+  if [ -z "$RUN" ]; then
+    if [ ${#kept[@]} -gt 0 ]; then printf '%s\n' "${kept[@]}" > "$RESTART"; else rm -f "$RESTART"; fi
+  fi
+
+  $RUN systemctl --user daemon-reload
+  ok "reloaded"
+
+  local todo=() line state active wants t w target
+  for unit in "${found[@]}"; do
+    name="$(basename "$unit")"
+    active="$(systemctl --user show -p ActiveState --value -- "$name")"
+
+    if grep -q '^\[Install\]' "$unit"; then
+      state="$(systemctl --user is-enabled -- "$name" 2>/dev/null || true)"
+      wants=ok
+      for t in $(sed -n 's/^WantedBy=//p' "$unit"); do
+        w="$DEST/$t.wants/$name"
+        target="$(readlink -f "$w" 2>/dev/null || true)"
+        if [ ! -e "$w" ] || [ "$target" != "$unit" ]; then wants=bad; fi
+      done
+      if [ "$state" != enabled ]; then
+        todo+=("enable $name|not enabled ($state)")
+      elif [ $wants = bad ]; then
+        todo+=("enable $name|.wants link missing or not pointing at $unit")
+      fi
+      if [ "$active" != active ]; then
+        todo+=("start $name|$active")
+        continue
+      fi
+    fi
+
+    # A timer is rescheduled by the reload alone, and a oneshot a timer pulls in picks up
+    # its new definition on its next run: only a running service keeps the old one.
+    case " ${kept[*]} " in *" $name "*)
+      todo+=("restart $name|running a definition older than its unit file") ;;
+    esac
+  done
+
+  if [ ${#todo[@]} -eq 0 ]; then
+    ok "all ${#found[@]} unit(s) enabled and current"
+  elif [ -n "$ACTIVATE" ]; then
+    for line in "${todo[@]}"; do
+      $RUN systemctl --user ${line%%|*}
+      ok "${line%%|*}: ${line#*|}"
+    done
+  else
+    warn "${#todo[@]} unit action(s) pending; re-run with --activate, or by hand:"
+    for line in "${todo[@]}"; do
+      echo "  systemctl --user ${line%%|*}    # ${line#*|}"
+    done
+  fi
+
+  if [ "$(loginctl show-user "$USER" -p Linger --value 2>/dev/null)" != yes ]; then
+    warn "lingering is off: these units stop at logout and timers miss their schedule"
+    echo "  loginctl enable-linger $USER"
+  fi
+}
+
+if [ ${#found[@]} -gt 0 ]; then
+  log "Activating units for tags: ${TAGS[*]}"
+  activate_units
 fi
 
 # ------------------------------------------------------------------------ key pairs
@@ -453,27 +567,5 @@ authorized_keys() {
 
 log "Generating authorized_keys for tags: ${TAGS[*]}"
 authorized_keys
-
-# install-dotfiles never reloads or enables anything, and neither does this: enabling has
-# side effects, and whether a --user unit should survive logout is a separate per-host
-# decision (loginctl enable-linger). Print what is left to do rather than guessing.
-
-if [ ${#found[@]} -gt 0 ]; then
-  log "Linked ${#found[@]} unit(s). Enabling is manual:"
-
-  echo "  systemctl --user daemon-reload"
-
-  # Only units carrying an [Install] section can be enabled at all - backup-cloud.service
-  # and parsifal-sync.service deliberately have none, because it is their .timer that gets
-  # enabled and they are pulled in as its target.
-
-  for unit in "${found[@]}"; do
-    if grep -q '^\[Install\]' "$unit"; then
-      echo "  systemctl --user enable --now $(basename "$unit")"
-    fi
-  done
-
-  echo "  loginctl enable-linger $USER    # if these must run while logged out"
-fi
 
 touch "$HOME/.install-host.complete"

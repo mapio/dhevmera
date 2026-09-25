@@ -45,8 +45,9 @@ to route around it.
 5. **Tagged things are separate.** `install-dotfiles` does not touch them. A
    change under `dotfiles/systemd/` or `dotfiles/ssh/{keys,authorized_keys}/`
    needs `./scripts/install-host` on the hosts carrying that tag.
-   - Units: then `systemctl --user daemon-reload` and `enable` by hand. Never
-     `disable` or `reenable` a unit this repo deploys.
+   - Units: it reloads and lists what differs from the repo; `--activate` applies
+     that. Ask before `--activate` where a restart would interrupt a running
+     service. Never `disable` or `reenable` a unit this repo deploys.
    - authorized_keys: when it changed, confirm it from another host within ten
      minutes, over a new connection:
      `ssh -o ControlMaster=no -o ControlPath=none <host> <repo>/scripts/install-host --confirm`.
