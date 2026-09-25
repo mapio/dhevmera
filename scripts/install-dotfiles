@@ -21,7 +21,7 @@ LOGFILE="$HOME/.install-dotfiles.log"
 exec 3>&1
 exec > >(tee -a "$LOGFILE") 2>&1
 
-# Helpers and the _install primitive are shared with install-units
+# Helpers and the _install primitive are shared with install-host and setup-claude
 
 source "$(dirname "${BASH_SOURCE[0]}")/install-common.sh"
 
@@ -93,15 +93,9 @@ _install $DOTFILES/qbt/gitlab-qbt-cluster.crt $HOME/.config/qbt/gitlab-qbt-clust
 
 _install $DOTFILES/aichat/config.yaml $HOME/.config/aichat/config.yaml
 
-# Named instructions.md rather than CLAUDE.md so it is not also loaded as the project
-# file for this directory; dotfiles/claude/README.md says why the payload looks as it does.
-_install $DOTFILES/claude/instructions.md $HOME/.claude/CLAUDE.md
-# Skills get one _install line each, not the whole directory: ~/.claude/skills/ also holds
-# entries this repo does not own. setup-claude reports links to skills removed here.
-_install $DOTFILES/claude/skills/sepolcro $HOME/.claude/skills/sepolcro
-
-# systemd --user units are NOT installed here: they are per-host, so they live in
-# dotfiles/systemd/<tag>/ and are linked by install-units, which run separately.
+# Nothing under ~/.claude is installed here: setup-claude does it, so that a host without
+# Claude Code gets none of it. systemd --user units are per-host, so they live in
+# dotfiles/systemd/<tag>/ and are linked by install-host. Both run separately.
 
 # The QBT GitLab is behind a self-signed certificate, so glab needs a CA bundle that
 # trusts it *in addition to* the public roots (ca_cert replaces the system pool rather

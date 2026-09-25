@@ -2,13 +2,15 @@
 
 set -eo pipefail
 
-# Claude Code setup that is not a symlink, so install-dotfiles cannot express it:
-# MCP servers registered through the claude CLI, and checks on what it links.
+# Everything Claude Code gets from this repo: the global instructions and skills linked
+# into ~/.claude, and the MCP servers registered through the claude CLI. Kept out of
+# install-dotfiles so that a host without Claude Code (the tablet: Termux cannot run it)
+# gets none of it.
 #
 #   setup-claude [--dry-run] [--prune]
 #
 # Skill links left dangling by a skill removed from the repo are only reported, unless
-# --prune is given. Hosts without Claude Code (the tablet: Termux cannot run it) are skipped.
+# --prune is given.
 
 RUN=
 PRUNE=
@@ -34,18 +36,33 @@ if ! command -v claude >/dev/null; then
   exit 0
 fi
 
+TAGS=()
+if [ -r "$TAGFILE" ]; then
+  mapfile -t TAGS < <(read_tags "$TAGFILE")
+fi
+check_tags "${TAGS[@]}"
+
 has_tag() {
-  [ -r "$TAGFILE" ] && read_tags "$TAGFILE" | grep -qx "$1"
+  local tag
+  for tag in "${TAGS[@]}"; do
+    [ "$tag" = "$1" ] && return 0
+  done
+  return 1
 }
 
-log "Checking the global instructions"
+log "Linking the global instructions and skills"
 
-want="$DOTFILES/claude/instructions.md"
-if [ "$(readlink "$HOME/.claude/CLAUDE.md")" = "$want" ]; then
-  ok "~/.claude/CLAUDE.md -> $want"
+# Named instructions.md rather than CLAUDE.md so it is not also loaded as the project
+# file for this directory; dotfiles/claude/README.md says why the payload looks as it does.
+if [ -e "$HOME/.claude/CLAUDE.md" ] && [ ! -h "$HOME/.claude/CLAUDE.md" ]; then
+  warn "~/.claude/CLAUDE.md is a plain file, left alone: carry its changes into the repo, remove it, re-run"
 else
-  warn "~/.claude/CLAUDE.md is not a link to $want: carry any changes into the repo, then re-run install-dotfiles"
+  _install "$DOTFILES/claude/instructions.md" "$HOME/.claude/CLAUDE.md"
 fi
+
+# Skills get one _install line each, not the whole directory: ~/.claude/skills/ also holds
+# entries this repo does not own.
+_install "$DOTFILES/claude/skills/sepolcro" "$HOME/.claude/skills/sepolcro"
 
 log "Checking for skill links whose source left the repo"
 
@@ -67,9 +84,10 @@ done
 
 log "Registering MCP servers"
 
-# manent's index lives on svm: the full tools there, read-only over ssh elsewhere.
+# manent's index lives on svm, the pvm host: the full tools there, read-only over ssh
+# elsewhere.
 MANENT=/chome/santini/Activities/Programming/manent/.venv/bin/manent
-if has_tag svm; then
+if has_tag pvm; then
   manent=("$MANENT" mcp --ssh-host svm)
 else
   manent=(ssh -o BatchMode=yes svm "$MANENT" mcp --read-only --ssh-host svm)

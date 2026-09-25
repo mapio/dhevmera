@@ -2,7 +2,8 @@
 
 set -eo pipefail
 
-# Links this host's systemd --user units into ~/.config/systemd/user/.
+# Installs what this host carries by tag: for now, its systemd --user units, linked
+# into ~/.config/systemd/user/.
 #
 # Unlike the tool configs install-dotfiles deploys, which are wanted on every host this
 # repo is cloned onto, a service belongs only to a host that has what it runs -
@@ -10,16 +11,16 @@ set -eo pipefail
 # exists only on one machine.
 #
 # Units are therefore filed by TAG: dotfiles/systemd/<tag>/. A tag is a role, not a
-# hostname - 'svm' is an ssh alias, and these hosts are ephemeral enough that their real
-# hostnames are not worth encoding. A host declares which tags it carries, and may carry
-# several; this script installs the union of their directories.
+# hostname: these hosts are ephemeral enough that their names are not worth encoding. A
+# host declares which tags it carries, and may carry several; this script installs the
+# union of their directories.
 #
-#   install-units [--dry-run] [tag...]
+#   install-host [--dry-run] [tag...]
 #
 # Tags come from the arguments, or - with none - from ~/.dhevmera-tags, one per line,
-# blank lines and # comments ignored. That file is host-local state and is not in this
-# repo: it is the one thing that cannot roam, since it is precisely what distinguishes
-# this host from the others.
+# blank lines and # comments ignored, each one of KNOWN_TAGS in install-common.sh. That
+# file is host-local state and is not in this repo: it is the one thing that cannot roam,
+# since it is precisely what distinguishes this host from the others.
 #
 # Linking is all this does. Enabling stays manual and per host, deliberately: see the
 # reminder printed at the end.
@@ -35,7 +36,7 @@ fi
 
 # Keep a log of the setup process
 
-LOGFILE="$HOME/.install-units.log"
+LOGFILE="$HOME/.install-host.log"
 exec 3>&1
 exec > >(tee -a "$LOGFILE") 2>&1
 
@@ -56,7 +57,7 @@ elif [ -r "$TAGFILE" ]; then
 else
   log "No tags for this host"
   warn "no tags given and no '$TAGFILE'"
-  warn "tags available: $(cd "$UNITS" && echo */ | tr -d /)"
+  warn "tags available: ${KNOWN_TAGS[*]}"
   warn "declare this host's tags in '$TAGFILE', one per line, or pass them as arguments"
   exit 0
 fi
@@ -67,18 +68,17 @@ if [ ${#TAGS[@]} -eq 0 ]; then
   exit 0
 fi
 
+check_tags "${TAGS[@]}"
+
 log "Installing systemd --user units for tags: ${TAGS[*]} (from $TAGSRC)"
 
-# Collect first, install second, so an unknown tag or a collision is reported before
-# anything on disk has been replaced.
+# Collect first, install second, so a collision is reported before anything on disk has
+# been replaced. A tag without a directory under dotfiles/systemd/ simply has no units.
 
 shopt -s nullglob
 found=()
 
 for tag in "${TAGS[@]}"; do
-  if [ ! -d "$UNITS/$tag" ]; then
-    die "unknown tag '$tag': no directory '$UNITS/$tag'"
-  fi
   for unit in "$UNITS/$tag"/*; do
     for seen in "${found[@]}"; do
       if [ "$(basename "$seen")" = "$(basename "$unit")" ]; then
@@ -161,7 +161,7 @@ fi
 
 if [ ${#found[@]} -eq 0 ]; then
   log "No units for this host"
-  touch "$HOME/.install-units.complete"
+  touch "$HOME/.install-host.complete"
   exit 0
 fi
 
@@ -181,4 +181,4 @@ done
 
 echo "  loginctl enable-linger $USER    # if these must run while logged out"
 
-touch "$HOME/.install-units.complete"
+touch "$HOME/.install-host.complete"

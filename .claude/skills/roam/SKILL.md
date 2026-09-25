@@ -43,17 +43,18 @@ to route around it.
    that host, or make the single `ln -sfn` by hand when only one destination is
    affected.
 5. **Units are separate.** `install-dotfiles` does not touch them. A change
-   under `dotfiles/systemd/` needs `./scripts/install-units` on the hosts
+   under `dotfiles/systemd/` needs `./scripts/install-host` on the hosts
    carrying that tag, then `systemctl --user daemon-reload` and `enable` by
    hand. Never `disable` or `reenable` a unit this repo deploys.
-6. **Claude setup.** A change that removes or renames a skill, or touches
+6. **Claude setup.** `install-dotfiles` does not touch `~/.claude` either. A
+   change that adds, removes or renames a skill, or touches
    `scripts/setup-claude`, needs `./scripts/setup-claude` on each host with
    Claude Code (not the tablet). If it reports a stale skill link, ask Massimo
    before re-running it with `--prune`; never prune on your own.
 
 ## Verify before declaring it done
 
-Per host:
+Per host (the tablet has no `~/.claude`, so only the first line applies there):
 
 ```bash
 find ~/.config/systemd/user -xtype l    # dangling unit links; want no output

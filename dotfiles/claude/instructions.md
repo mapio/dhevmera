@@ -5,14 +5,14 @@ remember to add at the bottom of the project's own `CLAUDE.md` an explicit
 invitation to read this document first!!
 
 **This file is provisioned by `dhevmera`.** `~/.claude/CLAUDE.md` is a symlink
-that `scripts/install-dotfiles` points at `dotfiles/claude/instructions.md` in
-that repository, which is the only copy and the only history. Edit it through
+that `scripts/setup-claude` points at `dotfiles/claude/instructions.md` in that
+repository, which is the only copy and the only history. Edit it through
 the link or in the repo, and commit; **never replace the link with a regular
 file** — every other host keeps following the repo, so the two silently stop
 being the same document, and from inside a session there is no way to tell which
 one is being obeyed. If `~/.claude/CLAUDE.md` is ever found to be a plain file,
-the fix is to carry its changes into the repo and re-run `install-dotfiles`, not
-to copy it around.
+the fix is to carry its changes into the repo, remove it and re-run
+`setup-claude`, not to copy it around.
 
 ## Never, without asking first
 
@@ -86,7 +86,7 @@ agreed window. Write the procedure and hand it over rather than running it.
 them: the configs, dotfiles and general-purpose scripts he wants on *every*
 machine, plus the systemd `--user` units each one runs. Anything meant to exist
 on all hosts belongs there rather than hand-placed on one. Four entry points —
-`scripts/install-software`, `install-dotfiles`, `install-units`, `setup-claude`
+`scripts/install-software`, `install-dotfiles`, `install-host`, `setup-claude`
 — and deployment is explicit: every file needs its own `_install <src> <dst>`
 line, so **a new config is inert until you add one**. Credentials never go in
 the repository proper; they live in `secrets/`, a separate remote-less git repo

@@ -2,15 +2,15 @@
 
 Config that roams across ephemeral dev boxes. Four entry points: `scripts/install-software`
 provisions the machine, `scripts/install-dotfiles` links this repo's files into `$HOME`,
-`scripts/install-units` links the systemd `--user` units this particular host should run,
-and `scripts/setup-claude` does the Claude Code setup a symlink cannot. The first two are
-host-agnostic; the others are not.
+`scripts/install-host` installs what this particular host carries by tag (its systemd
+`--user` units), and `scripts/setup-claude` sets up Claude Code where it is installed. The
+first two are host-agnostic; the others are not.
 
 ## Deployment is explicit symlinks, not a convention
 
 `scripts/install-dotfiles` is a hand-written bash script. Its one primitive — shared with
-`install-units` via `scripts/install-common.sh`, so the semantics below cannot drift between
-them — is
+`install-host` and `setup-claude` via `scripts/install-common.sh`, so the semantics below
+cannot drift between them — is
 
 ```bash
 _install <src> <dst>    # rm -rf "$dst" && ln -s "$(realpath src)" "$dst"
@@ -79,33 +79,52 @@ Env-var secrets live in `secrets/config/bash_secrets`, sourced by `shell/bash_pr
 
 ## The global Claude Code instructions ship from here
 
-`dotfiles/claude/instructions.md` is linked to `~/.claude/CLAUDE.md`, the file Claude Code
-loads at the start of every session in every directory on this host, on top of whatever
-`CLAUDE.md` the project provides — including this one. It roams for the same reason the
-shell config does, and the symlink is what keeps it from being edited in place on one host
-and silently stale on the others. `dotfiles/claude/README.md` is not linked and says where
-its rules came from and what to weigh before adding another.
+`dotfiles/claude/instructions.md` is linked by `scripts/setup-claude` to
+`~/.claude/CLAUDE.md`, the file Claude Code loads at the start of every session in every
+directory on this host, on top of whatever `CLAUDE.md` the project provides — including this
+one. It roams for the same reason the shell config does, and the symlink is what keeps it
+from being edited in place on one host and silently stale on the others.
+`dotfiles/claude/README.md` is not linked and says where its rules came from and what to
+weigh before adding another.
 
 Global skills ship the same way: `dotfiles/claude/skills/<name>/` is linked to
-`~/.claude/skills/<name>`, which Claude Code loads in every project. Each skill gets its
-own `_install` line, never the whole directory, because `~/.claude/skills/` also holds
-entries this repo does not own (`synced/`). A skill about one repository stays in that
-repository's `.claude/skills/`, as `roam` and `secret-ballet` do here.
+`~/.claude/skills/<name>`, which Claude Code loads in every project. Each skill gets its own
+`_install` line in `setup-claude`, never the whole directory, because `~/.claude/skills/`
+also holds entries this repo does not own (`synced/`). A skill about one repository stays in
+that repository's `.claude/skills/`, as `roam` and `secret-ballet` do here.
 
-`scripts/setup-claude [--dry-run] [--prune]` covers what a symlink cannot. It registers the
-MCP servers at user scope through the `claude` CLI — manent with its full tools on a host
-tagged `svm`, `--read-only` over ssh to svm elsewhere — checks that `~/.claude/CLAUDE.md` is
-still a link to `instructions.md`, and reports skill links left dangling by a skill removed
-from the repo. It removes those only under `--prune`, run by hand: `install-dotfiles` never
-prunes, since a script that installs into a directory cannot know what else there is still
-wanted. A host without Claude Code, such as the tablet, is skipped outright, so its own
-dangling skill links go unreported; they are harmless there.
+`scripts/setup-claude [--dry-run] [--prune]` owns everything under `~/.claude`, so a host
+without Claude Code, such as the tablet, gets none of it: the script exits there before
+touching anything. It links the instructions and the skills, refusing to replace a
+`~/.claude/CLAUDE.md` that is a plain file, registers the MCP servers at user scope through
+the `claude` CLI — manent with its full tools on a host tagged `pvm`, `--read-only` over ssh
+to svm elsewhere — and reports skill links left dangling by a skill removed from the repo.
+It removes those only under `--prune`, run by hand: a script that installs into a directory
+cannot know what else there is still wanted.
 
 `.claude/skills/` names the two procedures this layout implies but nothing here states as
 a sequence: **`roam`** lands a change on every host, **`secret-ballet`** is the pack,
 publish, fetch, unpack round trip. They hold the order of steps and defer to this file
 for why each step is shaped as it is; keep it that way, or they become a second copy that
 ages.
+
+## Tags tell one host from another
+
+`install-dotfiles` treats every host alike; `install-host` and `setup-claude` do not, and
+what they go by is the host's **tags**. A tag is a *role*, not a hostname: svm carries
+`pvm` (personal virtual machine) and parsifal carries `qbt`, because these hosts are
+ephemeral enough that their names are not worth encoding, and a role can move to another
+host or be shared by two. A host declares its tags, possibly several, in `~/.dhevmera-tags`,
+one per line, blank lines and `#` comments ignored. That file is deliberately **not** in
+this repo: it is the one piece of config that cannot roam, being precisely what tells this
+host from the rest.
+
+The known tags, with what each one means, are `KNOWN_TAGS` in `scripts/install-common.sh`;
+any other is fatal in both scripts, which catches a typo before anything on disk changes. A
+tag needs no directory of its own: each script acts on the tags it has a use for —
+`install-host` on `dotfiles/systemd/<tag>/` where one exists, `setup-claude` on `pvm` for
+manent — and ignores the rest. Adding a tag is one entry in that list plus a line in the
+host's file.
 
 ## Software fragments
 
@@ -278,7 +297,7 @@ accepted costs: sudo is required, and none of this works on Termux.
   the `Activities/` paths are the real ones. Note this makes the secrets-root default
   `/chome/santini/dhevmera` a symlink too; it works, it is simply not what a unit should
   name. For a related reason
-  `install-dotfiles` and `install-units` resolve their roots with `pwd -P`: `_install` links
+  the install scripts resolve their roots with `pwd -P`: `_install` links
   `realpath` of the source, and a logical root would not match it if the repo were reached
   through a symlink — which would silently defeat the prune's prefix test.
 - **`aichat` is configured for OpenRouter's free tier, and its key is an env var.**
@@ -352,16 +371,12 @@ accepted costs: sudo is required, and none of this works on Termux.
   config here is wanted on every host that clones the repo; a service is not, because it
   needs what it runs to exist — `backup-cloud`'s `ExecStart` and `ytwit-bot`'s
   `WorkingDirectory` are both under `/chome`, present on one machine only. So units are
-  filed by **tag** in `dotfiles/systemd/<tag>/` and linked by `scripts/install-units`.
-  A tag is a *role*, not a hostname: `svm` is an ssh alias and not that box's real
-  hostname, and these hosts are ephemeral enough that hostnames are not worth encoding.
-  A host declares the tags it carries — possibly several, whose unit sets are unioned — in
-  `~/.dhevmera-tags`, one per line; `install-units [--dry-run] [tag...]` overrides that
-  from the command line. `~/.dhevmera-tags` is deliberately **not** in this repo: it is the
-  one piece of config that cannot roam, being precisely what tells this host from the rest.
-  An unknown tag, or one unit name claimed by two tags, is fatal — and checked before
-  anything on disk is replaced.
-- **`install-units` prunes**, so dropping a unit from the repo or moving it to a tag this
+  filed by [tag](#tags-tell-one-host-from-another) in `dotfiles/systemd/<tag>/` and linked
+  by `scripts/install-host`. A host carrying several tags gets the union of their units;
+  `install-host [--dry-run] [tag...]` overrides `~/.dhevmera-tags` from the command line.
+  One unit name claimed by two tags is fatal — and checked before anything on disk is
+  replaced.
+- **`install-host` prunes**, so dropping a unit from the repo or moving it to a tag this
   host does not carry actually removes it from `~/.config/systemd/user/`. Three conditions
   gate every removal, confining it to links the script itself made: the entry is a symlink
   (a regular file there was hand-written and is never touched), its target is inside
@@ -371,7 +386,7 @@ accepted costs: sudo is required, and none of this works on Termux.
   Pruning does **not** undo a previous `enable`: that leaves its own link under
   `*.target.wants/`, which is systemd's to manage, so the script prints the
   `systemctl --user disable` lines instead of touching them.
-- **`install-units` links only; it does not reload or enable anything.** After adding or
+- **`install-host` links only; it does not reload or enable anything.** After adding or
   changing a unit, run `systemctl --user daemon-reload` and
   `systemctl --user enable --now <name>.timer` yourself, per host — same spirit as the
   crontab entries, which this repo also never scripts. The script prints the exact commands,
@@ -382,20 +397,20 @@ accepted costs: sudo is required, and none of this works on Termux.
   (replacing the old `backup-cloud` cron line) and `parsifal-sync.timer` (replacing the old
   `parsifal-sync` cron line) both rely on that being enabled.
 - **Never `systemctl --user disable` or `reenable` a unit this repo deploys — use plain
-  `enable`.** Everything `install-units` puts in `~/.config/systemd/user/` is a *linked*
+  `enable`.** Everything `install-host` puts in `~/.config/systemd/user/` is a *linked*
   unit (a symlink pointing outside the unit directories, which is why `is-enabled` reports
   `linked` rather than `disabled` for the two oneshots). For a linked unit `disable` removes
   **the symlink itself**, not merely the enablement, so `reenable` deletes the unit and then
   fails to re-enable what is no longer there — leaving it neither linked nor enabled. This
   happened on svm during the move to tags: `ytwit-bot.service`, `backup-cloud.timer` and
-  `parsifal-sync.timer` all lost their symlinks in one command. Recovery is `install-units`
+  `parsifal-sync.timer` all lost their symlinks in one command. Recovery is `install-host`
   followed by `systemctl --user enable <name>`. Note `disable` does *not* stop a running
   unit, so the damage is silent until the next boot.
 - **`enable` writes `*.target.wants/<name>` pointing straight at the file in this repo**, not
   at the copy in `~/.config/systemd/user/`. Those links are systemd's, outside what
-  `install-units` manages, so it cannot repair them: **moving a unit between tags, or any
+  `install-host` manages, so it cannot repair them: **moving a unit between tags, or any
   change to its path in the repo, dangles the `.wants` link and needs a manual
-  `systemctl --user enable` afterwards.** `install-units` relinking the unit is not enough —
+  `systemctl --user enable` afterwards.** `install-host` relinking the unit is not enough —
   it fixes the entry in `~/.config/systemd/user/` while the enablement still points at the
   old path. Check with `find ~/.config/systemd/user -xtype l`, which should print nothing.
 

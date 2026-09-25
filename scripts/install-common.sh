@@ -1,4 +1,4 @@
-# Sourced by install-dotfiles, install-units and setup-claude. Defines only colours and helpers - no
+# Sourced by install-dotfiles, install-host and setup-claude. Defines only colours and helpers - no
 # side effects - so each caller can set up its own logfile and fd 3 first.
 #
 # _install lives here rather than in either script because it is *the* deployment
@@ -21,8 +21,25 @@ ok()       { printf "%b\n" "${GREEN}✔ $*${RESET}"; }
 warn()     { printf "%b\n" "${YELLOW}⚠ $*${RESET}"; }
 die()      { printf "%b\n" "${RED}✖ $*${RESET}" >&2; exit 1; }
 
-# The tags a host declares in ~/.dhevmera-tags: one per line, blank lines and # comments ignored.
+# The roles a host may declare in ~/.dhevmera-tags. A tag needs no directory of its own:
+# install-host and setup-claude each act on the tags they know about and ignore the rest.
+KNOWN_TAGS=(pvm qbt aep)
+#   pvm  personal virtual machine (svm): /chome, the personal services, manent's index
+#   qbt  QBT consulting (parsifal): on the client VPN, holds ~/qbt-repos
+#   aep  Android entry point (the tablet): Termux, where empower runs from
+
+# One tag per line; blank lines and # comments ignored.
 read_tags() { sed -e 's/#.*//' -e '/^[[:space:]]*$/d' -e 's/[[:space:]]//g' "$1"; }
+
+check_tags() {
+  local tag known
+  for tag in "$@"; do
+    for known in "${KNOWN_TAGS[@]}"; do
+      [ "$tag" = "$known" ] && continue 2
+    done
+    die "unknown tag '$tag': known tags are ${KNOWN_TAGS[*]}"
+  done
+}
 
 _install() {
   src="$1"
