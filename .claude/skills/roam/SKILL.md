@@ -42,10 +42,16 @@ to route around it.
    needed, run `./scripts/install-dotfiles <secrets root>` from the repo root on
    that host, or make the single `ln -sfn` by hand when only one destination is
    affected.
-5. **Units are separate.** `install-dotfiles` does not touch them. A change
-   under `dotfiles/systemd/` needs `./scripts/install-host` on the hosts
-   carrying that tag, then `systemctl --user daemon-reload` and `enable` by
-   hand. Never `disable` or `reenable` a unit this repo deploys.
+5. **Tagged things are separate.** `install-dotfiles` does not touch them. A
+   change under `dotfiles/systemd/` or `dotfiles/ssh/{keys,authorized_keys}/`
+   needs `./scripts/install-host` on the hosts carrying that tag.
+   - Units: then `systemctl --user daemon-reload` and `enable` by hand. Never
+     `disable` or `reenable` a unit this repo deploys.
+   - authorized_keys: when it changed, confirm it from another host within ten
+     minutes, over a new connection:
+     `ssh -o ControlMaster=no -o ControlPath=none <host> <repo>/scripts/install-host --confirm`.
+     If it reverted instead, stop and tell Massimo.
+   - Never pass `--adopt` or `--prune` without asking him first.
 6. **Claude setup.** `install-dotfiles` does not touch `~/.claude` either. A
    change that adds, removes or renames a skill, or touches
    `scripts/setup-claude`, needs `./scripts/setup-claude` on each host with

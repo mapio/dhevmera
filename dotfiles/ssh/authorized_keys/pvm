@@ -1,0 +1,3 @@
+# svm: the tablet's restricted keys, one per service reached through a forced command.
+command="/chome/santini/Activities/Teaching/Courses/prog2/ui-exam/bin/server",no-pty,no-agent-forwarding,no-X11-forwarding,permitopen="localhost:8765" ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIJVOD10DHciy4f7ljlGVHiUx4AeA4dufkjqD0Vd5LFZS 
+command="/chome/santini/Activities/Programming/manent/bin/web-server",no-pty,no-agent-forwarding,no-X11-forwarding,permitopen="localhost:8025" ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAICB+OKs+xlwVEq2AB42MPWF2YNbCJkR2fEmih6U6O8/+ manent-tablet

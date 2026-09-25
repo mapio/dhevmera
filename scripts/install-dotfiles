@@ -30,7 +30,6 @@ DOTFILES="$(cd "$(dirname "${BASH_SOURCE[0]}")/../dotfiles" && pwd -P)"
 if [ -d $SECRETS ]; then
   log "Installing secrets from '$SECRETS'"
   _install $SECRETS/ssh/id_rsa $HOME/.ssh/id_rsa
-  _install $SECRETS/ssh/id_ed25519_qbt_sync $HOME/.ssh/id_ed25519_qbt_sync
   _install $SECRETS/config/bash_secrets $HOME/.bash_secrets
   _install $SECRETS/config/googleauth.json $HOME/.secrets.json
   _install $SECRETS/config/hcloud-cli.toml $HOME/.config/hcloud/cli.toml
@@ -61,11 +60,8 @@ _install $DOTFILES/gnupg/gpg.conf $HOME/.gnupg/gpg.conf
 
 _install $DOTFILES/ssh/config $HOME/.ssh/config
 _install $DOTFILES/ssh/id_rsa.pub $HOME/.ssh/id_rsa.pub
-# Dedicated restricted key: svm's parsifal-sync.timer uses it to reach the 'parsifal-sync'
-# Host alias, which forces qbt-sync-wrapper.sh on parsifal (read-only rsync of qbt-repos).
-# It carries no passphrase because unattended runs can't answer a prompt, hence the private
-# half in secrets/.
-_install $DOTFILES/ssh/id_ed25519_qbt_sync.pub $HOME/.ssh/id_ed25519_qbt_sync.pub
+# Only id_rsa, the golden key, goes to every host; other key pairs are per tag, installed
+# by install-host from dotfiles/ssh/keys/<tag>/.
 _install $DOTFILES/ssh/refresh-agent-link.sh $HOME/.ssh/refresh-agent-link.sh
 
 _install $DOTFILES/misc/direnvrc $HOME/.config/direnv/direnvrc

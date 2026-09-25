@@ -2,9 +2,9 @@
 
 Config that roams across ephemeral dev boxes. Four entry points: `scripts/install-software`
 provisions the machine, `scripts/install-dotfiles` links this repo's files into `$HOME`,
-`scripts/install-host` installs what this particular host carries by tag (its systemd
-`--user` units), and `scripts/setup-claude` sets up Claude Code where it is installed. The
-first two are host-agnostic; the others are not.
+`scripts/install-host` installs what this particular host carries by tag (systemd `--user`
+units, ssh key pairs, `authorized_keys`), and `scripts/setup-claude` sets up Claude Code
+where it is installed. The first two are host-agnostic; the others are not.
 
 ## Deployment is explicit symlinks, not a convention
 
@@ -122,9 +122,44 @@ host from the rest.
 The known tags, with what each one means, are `KNOWN_TAGS` in `scripts/install-common.sh`;
 any other is fatal in both scripts, which catches a typo before anything on disk changes. A
 tag needs no directory of its own: each script acts on the tags it has a use for —
-`install-host` on `dotfiles/systemd/<tag>/` where one exists, `setup-claude` on `pvm` for
-manent — and ignores the rest. Adding a tag is one entry in that list plus a line in the
-host's file.
+`install-host` on `dotfiles/systemd/<tag>/` and `dotfiles/ssh/` where they exist,
+`setup-claude` on `pvm` for manent — and ignores the rest. Adding a tag is one entry in that
+list plus a line in the host's file.
+
+## SSH keys and authorized_keys go by tag
+
+`install-dotfiles` gives every host one key pair, `id_rsa`: the golden key, the one that
+lets Massimo in. Every other pair belongs to a tag, with the public half in
+`dotfiles/ssh/keys/<tag>/<name>.pub` and the private one flat in `secrets/ssh/<name>`, and
+`install-host` links them, refusing to replace a hand-placed file that holds a different
+key. `id_ed25519_qbt_sync` is `pvm`'s: svm's `parsifal-sync.timer` reaches the
+`parsifal-sync` alias with it, which forces `qbt-sync-wrapper.sh` on parsifal, and it has no
+passphrase because an unattended run cannot answer one. `id_examui` and `id_manent` are
+`aep`'s, each forced on svm into a single service. A link into `dotfiles/ssh/` or
+`secrets/ssh/` that no tag claims is reported, and removed only under `--prune`.
+
+`~/.ssh/authorized_keys` is **generated**, not linked, since sshd's `StrictModes` would
+then vet every directory up to a file in the repo: the golden key first, then
+`dotfiles/ssh/authorized_keys/<tag>` for each tag. Some hosts are key-only, so a bad file
+is a lockout, and the script is built around not writing one:
+
+- the golden key cannot be dropped by a tag, and is checked against `GOLDEN_FP` in the
+  script, so rotating `id_rsa` means editing both;
+- every line must parse, with no duplicates — `ssh-keygen -lf` silently skips a line it
+  cannot read, so the script compares counts;
+- sshd must read `~/.ssh/authorized_keys`, found through `sudo -n sshd -T`, or from the
+  config files where there is no sudo (the tablet); the `StrictModes` modes are fixed;
+- a file the script did not generate is replaced only under `--adopt`, after the diff;
+- the golden key, from an agent, must log in over loopback *before* the change, or
+  nothing is written; the swap is an atomic `mv` with a timestamped backup;
+- after the swap the same login is repeated, and a failure puts the backup back at once;
+- a job — a transient `systemd-run --user` timer, or `setsid nohup` on Termux — restores
+  the backup ten minutes on, unless `install-host --confirm` has arrived through a new ssh
+  connection from another host. That connection working is the proof.
+
+Only a new login makes sshd read the file, so every test bypasses `~/.ssh/config` and any
+master connection. The loopback login cannot see a `Match Address` or `AllowUsers
+user@from` rule; the confirmation from outside is what covers it.
 
 ## Software fragments
 
