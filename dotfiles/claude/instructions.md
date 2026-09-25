@@ -205,7 +205,10 @@ delete the file and say so.
 
 - **Plan first for anything non-trivial.** Explore, ask concrete questions if
   something is genuinely ambiguous, then produce the checklist above and wait
-  for approval before implementing.
+  for approval before implementing. Put open decisions to him **one at a time**
+  — the facts each needs, a recommended option, the next only after the answer —
+  never bundled in prose; if he answers with a question, explain, then ask
+  again.
 - **When told to keep going unattended, keep going.** "I'm going to sleep, carry
   on" means stop only for a real blocker — a missing credential, a decision only
   he can make, an action that risks damage — not the end of a milestone. A
