@@ -1,0 +1,9 @@
+[Unit]
+Description=manent nightly check of the cold archive
+
+[Timer]
+OnCalendar=*-*-* 03:30
+Persistent=true
+
+[Install]
+WantedBy=timers.target

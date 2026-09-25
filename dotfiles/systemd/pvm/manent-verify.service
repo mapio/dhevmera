@@ -1,0 +1,10 @@
+[Unit]
+Description=manent nightly check of the cold archive
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+WorkingDirectory=/chome/santini/Activities/Programming/manent
+ExecStart=/chome/santini/Activities/Programming/manent/.venv/bin/manent verify --nightly
+UMask=0077

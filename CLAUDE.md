@@ -445,16 +445,16 @@ accepted costs: sudo is required, and none of this works on Termux.
   changing a unit, run `systemctl --user daemon-reload` and
   `systemctl --user enable --now <name>.timer` yourself, per host — same spirit as the
   crontab entries, which this repo also never scripts. The script prints the exact commands,
-  listing only units that carry an `[Install]` section: `backup-cloud.service` and
-  `parsifal-sync.service` have none on purpose, since it is their `.timer` that gets enabled
-  and they are pulled in as its target. A `--user` timer only fires on schedule while logged
-  in unless lingering is on (`loginctl enable-linger santini`); `backup-cloud.timer`
-  (replacing the old `backup-cloud` cron line) and `parsifal-sync.timer` (replacing the old
-  `parsifal-sync` cron line) both rely on that being enabled.
+  listing only units that carry an `[Install]` section: `backup-cloud.service`,
+  `parsifal-sync.service` and `manent-verify.service` have none on purpose, since it is
+  their `.timer` that gets enabled and they are pulled in as its target. A `--user` timer
+  only fires on schedule while logged in unless lingering is on (`loginctl enable-linger
+  santini`); `backup-cloud.timer` and `parsifal-sync.timer` (each replacing an old cron
+  line) and `manent-verify.timer` all rely on that being enabled.
 - **Never `systemctl --user disable` or `reenable` a unit this repo deploys — use plain
   `enable`.** Everything `install-host` puts in `~/.config/systemd/user/` is a *linked*
   unit (a symlink pointing outside the unit directories, which is why `is-enabled` reports
-  `linked` rather than `disabled` for the two oneshots). For a linked unit `disable` removes
+  `linked` rather than `disabled` for the three oneshots). For a linked unit `disable` removes
   **the symlink itself**, not merely the enablement, so `reenable` deletes the unit and then
   fails to re-enable what is no longer there — leaving it neither linked nor enabled. This
   happened on svm during the move to tags: `ytwit-bot.service`, `backup-cloud.timer` and
