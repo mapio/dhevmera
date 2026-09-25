@@ -29,6 +29,10 @@ exec > >(tee -a "$LOGFILE") 2>&1
 source "$(dirname "${BASH_SOURCE[0]}")/install-common.sh"
 
 DOTFILES="$(cd "$(dirname "${BASH_SOURCE[0]}")/../dotfiles" && pwd -P)"
+# QBT's observability stack keeps its MCP server and skill in its own repo, under the NDA:
+# only these paths appear here. Outside .claude/, so that repo does not load it twice.
+OBSERVABILITY="$HOME/qbt-repos/observability"
+QBTOBSERVE="$OBSERVABILITY/skills/qbtobserve"
 TAGFILE="$HOME/.dhevmera-tags"
 
 if ! command -v claude >/dev/null; then
@@ -64,12 +68,20 @@ fi
 # entries this repo does not own.
 _install "$DOTFILES/claude/skills/sepolcro" "$HOME/.claude/skills/sepolcro"
 
+if has_tag qbt; then
+  if [ -d "$QBTOBSERVE" ]; then
+    _install "$QBTOBSERVE" "$HOME/.claude/skills/qbtobserve"
+  else
+    warn "no '$QBTOBSERVE' yet: qbtobserve not linked"
+  fi
+fi
+
 log "Checking for skill links whose source left the repo"
 
 for link in "$HOME"/.claude/skills/*; do
   target=$(readlink "$link") || continue
   case "$target" in
-    "$DOTFILES"/claude/skills/*) ;;
+    "$DOTFILES"/claude/skills/* | "$QBTOBSERVE") ;;
     *) continue ;;
   esac
   if [ -e "$link" ]; then
@@ -96,3 +108,14 @@ fi
 $RUN claude mcp remove -s user manent 2>/dev/null || true
 $RUN claude mcp add -s user manent -- "${manent[@]}"
 ok "manent: ${manent[*]}"
+
+if has_tag qbt; then
+  observability=("$OBSERVABILITY/.venv/bin/python3" "$OBSERVABILITY/.claude/mcp/mcp-server.py")
+  if [ -x "${observability[0]}" ] && [ -f "${observability[1]}" ]; then
+    $RUN claude mcp remove -s user observability 2>/dev/null || true
+    $RUN claude mcp add -s user observability -- "${observability[@]}"
+    ok "observability: ${observability[*]}"
+  else
+    warn "no '${observability[1]}' with its .venv: observability not registered"
+  fi
+fi

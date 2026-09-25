@@ -98,9 +98,11 @@ without Claude Code, such as the tablet, gets none of it: the script exits there
 touching anything. It links the instructions and the skills, refusing to replace a
 `~/.claude/CLAUDE.md` that is a plain file, registers the MCP servers at user scope through
 the `claude` CLI — manent with its full tools on a host tagged `pvm`, `--read-only` over ssh
-to svm elsewhere — and reports skill links left dangling by a skill removed from the repo.
-It removes those only under `--prune`, run by hand: a script that installs into a directory
-cannot know what else there is still wanted.
+to svm elsewhere; on `qbt`, QBT's observability server and its `qbtobserve` skill, which
+live in `~/qbt-repos/observability` under the NDA, so only their paths are named here — and
+reports skill links left dangling by a skill removed from the repo. It removes those only
+under `--prune`, run by hand: a script that installs into a directory cannot know what else
+there is still wanted.
 
 `.claude/skills/` names the two procedures this layout implies but nothing here states as
 a sequence: **`roam`** lands a change on every host, **`secret-ballet`** is the pack,
@@ -123,7 +125,7 @@ The known tags, with what each one means, are `KNOWN_TAGS` in `scripts/install-c
 any other is fatal in both scripts, which catches a typo before anything on disk changes. A
 tag needs no directory of its own: each script acts on the tags it has a use for —
 `install-host` on `dotfiles/systemd/<tag>/` and `dotfiles/ssh/` where they exist,
-`setup-claude` on `pvm` for manent — and ignores the rest. Adding a tag is one entry in that
+`setup-claude` on `pvm` and `qbt` — and ignores the rest. Adding a tag is one entry in that
 list plus a line in the host's file.
 
 ## SSH keys and authorized_keys go by tag
