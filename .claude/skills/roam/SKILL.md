@@ -65,6 +65,7 @@ Per host (the tablet has no `~/.claude`, so only the first line applies there):
 ```bash
 find ~/.config/systemd/user -xtype l    # dangling unit links; want no output
 ls -la ~/.claude/CLAUDE.md              # a symlink into the repo, never a plain file
+ls -la ~/.claude/settings.json          # likewise, where a tag of the host has one
 find ~/.claude/skills -xtype l          # dangling skill links; want no output
 for d in dotfiles/claude/skills/*/; do    # from the repo root; want no output
   [ "$(readlink ~/.claude/skills/"$(basename "$d")")" = "$(pwd -P)/${d%/}" ] || echo "unlinked: $d"

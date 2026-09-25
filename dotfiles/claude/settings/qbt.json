@@ -1,0 +1,28 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__qbt-openobserve__query_stream"
+    ]
+  },
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash '/home/santini/.claude/hooks/herdr-agent-state.sh' session",
+            "timeout": 10
+          }
+        ]
+      }
+    ]
+  },
+  "statusLine": {
+    "type": "command",
+    "command": "bash /home/santini/.claude/statusline.sh"
+  },
+  "tui": "fullscreen",
+  "agentPushNotifEnabled": true,
+  "feedbackDrafts": "quiet"
+}

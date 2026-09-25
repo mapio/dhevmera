@@ -2,8 +2,9 @@
 
 set -eo pipefail
 
-# Everything Claude Code gets from this repo: the global instructions and skills linked
-# into ~/.claude, and the MCP servers registered through the claude CLI. Kept out of
+# Everything Claude Code gets from this repo: the global instructions, skills and the
+# tag's settings.json linked into ~/.claude, and the MCP servers registered through the
+# claude CLI. Kept out of
 # install-dotfiles so that a host without Claude Code (the tablet: Termux cannot run it)
 # gets none of it.
 #
@@ -75,6 +76,28 @@ if has_tag qbt; then
   else
     warn "no '$QBTOBSERVE' yet: qbt-openobserve skill not linked"
   fi
+fi
+
+# The status line settings.json points at: generic, so every Claude host gets it.
+_install "$DOTFILES/claude/statusline.sh" "$HOME/.claude/statusline.sh"
+
+log "Linking settings.json"
+
+# One file per tag, linked whole: no merging, so a host may carry at most one tag that has
+# one. Claude Code writes into it (/effort, /model), which shows up in git status here.
+settings=()
+for tag in "${TAGS[@]}"; do
+  [ -f "$DOTFILES/claude/settings/$tag.json" ] && settings+=("$DOTFILES/claude/settings/$tag.json")
+done
+dst="$HOME/.claude/settings.json"
+if [ ${#settings[@]} -gt 1 ]; then
+  die "tags ${TAGS[*]} have more than one settings file: ${settings[*]}"
+elif [ ${#settings[@]} -eq 0 ]; then
+  warn "no tag of this host has a settings file: $dst left as it is"
+elif [ -f "$dst" ] && [ ! -h "$dst" ] && ! cmp -s "$dst" "${settings[0]}"; then
+  warn "$dst is a plain file that differs from ${settings[0]}: carry its changes into the repo, remove it, re-run"
+else
+  _install "${settings[0]}" "$dst"
 fi
 
 log "Checking for skill links whose source left the repo"
