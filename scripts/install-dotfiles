@@ -99,6 +99,7 @@ _install $DOTFILES/claude/instructions.md $HOME/.claude/CLAUDE.md
 # One line per skill, not the whole directory: ~/.claude/skills/ also holds entries this
 # repo does not own.
 _install $DOTFILES/claude/skills/search-mail $HOME/.claude/skills/search-mail
+_install $DOTFILES/claude/skills/sepolcro $HOME/.claude/skills/sepolcro
 
 # systemd --user units are NOT installed here: they are per-host, so they live in
 # dotfiles/systemd/<tag>/ and are linked by install-units, which run separately.

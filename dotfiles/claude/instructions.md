@@ -343,8 +343,16 @@ spirit of, but never copied from:
 > Your genie is awake: wrapped at 80, signed in GPG, and sworn off
 > `--no-gpg-sign`.
 
-A session that opens by resuming work — from `current-plan.md`, a "restart" or
-a summary — is still a first reply: the line comes first, then the resumption.
+A session that opens by resuming work — from `current-plan.md`, a "restart" or a
+summary — is still a first reply: the line comes first, then the resumption.
+
+**`lazzaro`**, as a prompt, means: greet, then restart. It is defined nowhere
+but here, on purpose — a session that does not recognise it must ask what it
+means, never guess, because that question is how he learns this file did not
+load. Restarting: check the memory symlink, read `current-plan.md` (none: say so
+and ask), `git status`, state where things stand in three lines, then carry on
+with the next open item. Its counterpart `/sepolcro` readies a session to be
+cleared.
 
 One line, on the first reply only, then straight to the work. It sits at the
 foot of the file on purpose: reaching it means the whole thing is in context.
