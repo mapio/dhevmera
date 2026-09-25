@@ -100,6 +100,13 @@ else
   _install "${settings[0]}" "$dst"
 fi
 
+# herdr owns its Claude hook: this writes the script at herdr's own version and ensures its
+# SessionStart entry, through the settings.json link, so a changed entry shows up here.
+if command -v herdr >/dev/null; then
+  log "Installing herdr's Claude integration"
+  $RUN herdr integration install claude
+fi
+
 log "Checking for skill links whose source left the repo"
 
 for link in "$HOME"/.claude/skills/*; do

@@ -104,6 +104,40 @@ if [ -x "$CODE" ]; then
 
 fi
 
+# herdr in /usr/local cannot update itself ('herdr update' rewrites its own binary), so
+# this does, the way 67-herdr.sh installs it: upstream's checksumming install.sh into a
+# scratch dir, then one sudo copy.
+
+HERDR=/usr/local/bin/herdr
+
+if [ -x "$HERDR" ]; then
+
+  HERDR_INSTALLED=$("$HERDR" --version 2>/dev/null | awk '{ print $2 }')
+  HERDR_LATEST=$(curl -fsSL https://herdr.dev/latest.json \
+    | sed -n 's/^ *"version": *"\([^"]*\)".*/\1/p' | head -n1 || true)
+
+  if [ -z "$HERDR_LATEST" ]; then
+    log "Could not determine the latest herdr version, skipping"
+  elif [ "$HERDR_INSTALLED" = "$HERDR_LATEST" ]; then
+    log "herdr is current ($HERDR_INSTALLED)"
+  else
+    log "Updating herdr $HERDR_INSTALLED -> $HERDR_LATEST"
+    if [ -z "$RUN" ]; then
+      HERDR_TMP=$(mktemp -d)
+      curl -fsSL https://herdr.dev/install.sh | HERDR_INSTALL_DIR="$HERDR_TMP" sh
+      $SUDO install -m 755 "$HERDR_TMP/herdr" "$HERDR"
+      rm -rf "$HERDR_TMP"
+      log "herdr now $("$HERDR" --version | awk '{ print $2 }'): restart it, or use its live handoff"
+      # A new release may carry a new Claude hook; it writes through the settings.json link.
+      ! command -v claude >/dev/null || "$HERDR" integration install claude
+    else
+      $RUN "curl -fsSL https://herdr.dev/install.sh | HERDR_INSTALL_DIR=<tmp> sh && $SUDO install -m 755 <tmp>/herdr $HERDR"
+      $RUN "$HERDR" integration install claude
+    fi
+  fi
+
+fi
+
 # The remotes run this file over stdin, so there is one version in play per run and no
 # need to know where each host keeps its clone. --all is never forwarded, or they would
 # hand it straight back.

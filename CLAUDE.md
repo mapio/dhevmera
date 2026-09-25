@@ -96,18 +96,18 @@ that repository's `.claude/skills/`, as `roam` and `secret-ballet` do here.
 `scripts/setup-claude [--dry-run] [--prune]` owns everything under `~/.claude`, so a host
 without Claude Code, such as the tablet, gets none of it: the script exits there before
 touching anything. It links the instructions, the skills and the status line script,
-refusing to replace a `~/.claude/CLAUDE.md` that is a plain file, registers the MCP servers
-at user scope through the `claude` CLI — manent with its full tools on a host tagged `pvm`,
-`--read-only` over ssh to svm elsewhere; on `qbt`, QBT's OpenObserve server and its skill,
-both `qbt-openobserve`, which live in `~/qbt-repos/observability` under the NDA, so only
-their paths are named here — and reports skill links left dangling by a skill removed from
-the repo. It removes those only under `--prune`, run by hand: a script that installs into a
-directory cannot know what else there is still wanted. `~/.claude/settings.json` is linked
-whole from `dotfiles/claude/settings/<tag>.json`, with no merging, so a host may carry at
-most one tag that has one; a plain file that differs from it is left alone. Claude Code
-writes into that file itself (`/effort`, `/model`), so its changes show up here as a dirty
-tree: review them, then commit or revert. Nothing in it may name client material, since this
-repo is public.
+refusing to replace a `~/.claude/CLAUDE.md` that is a plain file, runs `herdr integration
+install claude` where herdr is installed, registers the MCP servers at user scope through
+the `claude` CLI — manent with its full tools on a host tagged `pvm`, `--read-only` over ssh
+to svm elsewhere; on `qbt`, QBT's OpenObserve server and its skill, both `qbt-openobserve`,
+which live in `~/qbt-repos/observability` under the NDA, so only their paths are named here
+— and reports skill links left dangling by a skill removed from the repo. It removes those
+only under `--prune`, run by hand: a script that installs into a directory cannot know what
+else there is still wanted. `~/.claude/settings.json` is linked whole from
+`dotfiles/claude/settings/<tag>.json`, with no merging, so a host may carry at most one tag
+that has one; a plain file that differs from it is left alone. Claude Code writes into that
+file itself (`/effort`, `/model`), so its changes show up here as a dirty tree: review them,
+then commit or revert. Nothing in it may name client material, since this repo is public.
 
 `.claude/skills/` names the two procedures this layout implies but nothing here states as
 a sequence: **`roam`** lands a change on every host, **`secret-ballet`** is the pack,
@@ -199,7 +199,7 @@ Three buckets. Pick by **how the tool is distributed**, not by preference:
 | bucket | rule | examples |
 | --- | --- | --- |
 | `/usr` | available as an APT package from a public repo that standard tools can add | `tzdata`, `nodejs`, `docker-ce`, `gh`, `tailscale` |
-| `/usr/local` | needs sudo, but is **not** APT-packaged anywhere usable | `starship`, `glab`, `rclone`, `aichat`, VS Code CLI, `devcontainer` |
+| `/usr/local` | needs sudo, but is **not** APT-packaged anywhere usable | `starship`, `glab`, `rclone`, `aichat`, `herdr`, VS Code CLI, `devcontainer` |
 | `$HOME` | user-scoped, or manages its own toolchain and cannot be system-installed | `rustup` → `.cargo`, SDKMAN! → `.sdkman`, `bun` → `.bun` |
 
 The rule that actually matters is the negative one: **nothing that apt does not own may be
@@ -401,6 +401,19 @@ accepted costs: sudo is required, and none of this works on Termux.
   results worth keeping if this is ever revisited: `mistralai/mistral-nemo`, the cheapest
   of all, invented a `jq` merge that does not work, and `qwen/qwen3.7-flash` is correct but
   takes 20–30 seconds a question.
+- **herdr lives in `/usr/local/bin`, so it cannot update itself.** `herdr update` rewrites
+  its own binary in place, which needs root there; `67-herdr.sh` installs it and
+  `update-system` upgrades it, both through upstream's `install.sh` run unprivileged into a
+  scratch dir (`HERDR_INSTALL_DIR`), which keeps its SHA-256 check and never runs a
+  downloaded script as root. A running herdr server keeps its old binary, so an upgrade
+  means restarting herdr or using its live handoff. herdr owns its Claude hook:
+  `setup-claude`, and `update-system` after an upgrade, run `herdr integration install
+  claude`, which writes the hook script at herdr's own version and ensures its
+  `SessionStart` entry in `settings.json`, through the link. The tag files keep that entry
+  because herdr would write it back anyway; with it present the write is a byte-identical
+  no-op, and a diff to it after an upgrade is herdr's, to commit rather than edit. The
+  tablet's `~/.local/bin/herdr` stays hand-placed: `install.sh` refuses Termux, and
+  `install-software` does not run there.
 - `~/.config/qbt/ca-bundle.crt` is **generated**, not linked: glab's `ca_cert` replaces the
   system trust pool instead of extending it, so the bundle must be the public roots plus
   `dotfiles/qbt/gitlab-qbt-cluster.crt`. Only the 2 KB leaf cert is committed.
