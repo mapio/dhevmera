@@ -29,10 +29,11 @@ exec > >(tee -a "$LOGFILE") 2>&1
 source "$(dirname "${BASH_SOURCE[0]}")/install-common.sh"
 
 DOTFILES="$(cd "$(dirname "${BASH_SOURCE[0]}")/../dotfiles" && pwd -P)"
-# QBT's observability stack keeps its MCP server and skill in its own repo, under the NDA:
-# only these paths appear here. Outside .claude/, so that repo does not load it twice.
+# QBT's OpenObserve MCP server and its skill, both named qbt-openobserve, live in the
+# observability repo under the NDA: only these paths appear here. The skill sits outside
+# .claude/, so that repo does not load it twice.
 OBSERVABILITY="$HOME/qbt-repos/observability"
-QBTOBSERVE="$OBSERVABILITY/skills/qbtobserve"
+QBTOBSERVE="$OBSERVABILITY/skills/qbt-openobserve"
 TAGFILE="$HOME/.dhevmera-tags"
 
 if ! command -v claude >/dev/null; then
@@ -70,9 +71,9 @@ _install "$DOTFILES/claude/skills/sepolcro" "$HOME/.claude/skills/sepolcro"
 
 if has_tag qbt; then
   if [ -d "$QBTOBSERVE" ]; then
-    _install "$QBTOBSERVE" "$HOME/.claude/skills/qbtobserve"
+    _install "$QBTOBSERVE" "$HOME/.claude/skills/qbt-openobserve"
   else
-    warn "no '$QBTOBSERVE' yet: qbtobserve not linked"
+    warn "no '$QBTOBSERVE' yet: qbt-openobserve skill not linked"
   fi
 fi
 
@@ -110,12 +111,14 @@ $RUN claude mcp add -s user manent -- "${manent[@]}"
 ok "manent: ${manent[*]}"
 
 if has_tag qbt; then
-  observability=("$OBSERVABILITY/.venv/bin/python3" "$OBSERVABILITY/.claude/mcp/mcp-server.py")
-  if [ -x "${observability[0]}" ] && [ -f "${observability[1]}" ]; then
+  openobserve=("$OBSERVABILITY/.venv/bin/python3" "$OBSERVABILITY/.claude/mcp/mcp-server.py")
+  if [ -x "${openobserve[0]}" ] && [ -f "${openobserve[1]}" ]; then
+    # 'observability' is the name it was registered under before.
     $RUN claude mcp remove -s user observability 2>/dev/null || true
-    $RUN claude mcp add -s user observability -- "${observability[@]}"
-    ok "observability: ${observability[*]}"
+    $RUN claude mcp remove -s user qbt-openobserve 2>/dev/null || true
+    $RUN claude mcp add -s user qbt-openobserve -- "${openobserve[@]}"
+    ok "qbt-openobserve: ${openobserve[*]}"
   else
-    warn "no '${observability[1]}' with its .venv: observability not registered"
+    warn "no '${openobserve[1]}' with its .venv: qbt-openobserve not registered"
   fi
 fi
