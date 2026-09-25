@@ -1,4 +1,18 @@
 #!/usr/bin/env bash
+# backup-prune - inspect and thin the restic repository backup-cloud writes
+#
+# Usage: backup-prune [f|p|c|s|l]
+#
+#   (none)  show what forget would drop, dropping nothing
+#   f       forget the snapshots outside the retention set in this script
+#   p       prune the data forget released, then check
+#   c       check the repository
+#   s       repository stats
+#   l       list snapshots
+#
+# RESTIC_PASSWORD must be in the environment, as a login shell has it.
+
+case "${1:-}" in -h|--help) sed -n '2,/^[^#]/s/^# \{0,1\}//p' "$0"; exit 0 ;; esac
 
 set -eo pipefail
 
@@ -31,7 +45,7 @@ case "${1:-}" in
     restic snapshots
     ;;
   *)
-    echo "Usage: $(basename "$0") [f|p|c|s|l]" >&2
+    echo "Usage: $(basename "$0") [f|p|c|s|l] (--help for more)" >&2
     exit 1
     ;;
 esac

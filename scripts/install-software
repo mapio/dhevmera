@@ -1,4 +1,12 @@
 #!/usr/bin/env bash
+# install-software - provision this machine: apt repositories, packages and tools
+#
+# Usage: install-software        (from the repo root)
+#
+# Sources scripts/install.d/*.sh in numeric order; each fragment guards itself, so a
+# rerun is safe. Needs root or sudo. Log: ~/.install-software.log.
+
+case "${1:-}" in -h|--help) sed -n '2,/^[^#]/s/^# \{0,1\}//p' "$0"; exit 0 ;; esac
 
 set -eo pipefail
 

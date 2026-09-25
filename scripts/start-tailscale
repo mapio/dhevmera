@@ -1,4 +1,11 @@
 #!/usr/bin/env bash
+# start-tailscale - join the tailnet as dhevmera, with Tailscale SSH
+#
+# Usage: start-tailscale
+#
+# TAILSCALE_AUTH_KEY comes from ~/.bash_secrets.
+
+case "${1:-}" in -h|--help) sed -n '2,/^[^#]/s/^# \{0,1\}//p' "$0"; exit 0 ;; esac
 
 set -eo pipefail
 

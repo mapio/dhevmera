@@ -1,4 +1,15 @@
 #!/usr/bin/env bash
+# install-dotfiles - link this repo's configs, and the unpacked secrets, into $HOME
+#
+# Usage: install-dotfiles [--dry-run]
+#
+#   --dry-run  print the commands instead of running them
+#
+# The same on every host. Each file has its own _install line in this script, so a new config
+# is inert until it gets one. Secrets come from secrets/ in this checkout, and are
+# skipped with a warning when it is not unpacked. Log: ~/.install-dotfiles.log.
+
+case "${1:-}" in -h|--help) sed -n '2,/^[^#]/s/^# \{0,1\}//p' "$0"; exit 0 ;; esac
 
 set -eo pipefail
 
@@ -6,7 +17,7 @@ RUN=
 for arg in "$@"; do
   case "$arg" in
     --dry-run) RUN=echo ;;
-    *) echo "usage: install-dotfiles [--dry-run]" >&2; exit 2 ;;
+    *) echo "usage: install-dotfiles [--dry-run] (--help for more)" >&2; exit 2 ;;
   esac
 done
 

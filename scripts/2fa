@@ -1,6 +1,13 @@
 #!/usr/bin/python3
+"""2fa - print the current TOTP code of every account in .secrets.json
 
-import hmac, base64, struct, hashlib, time, json
+Usage: 2fa        (from $HOME)
+
+.secrets.json maps a label to a base32 secret; install-dotfiles links it into $HOME
+from secrets/config/googleauth.json.
+"""
+
+import hmac, base64, struct, hashlib, time, json, sys
 
 def get_hotp_token(secret, intervals_no):
   secret = secret.replace(' ', '')
@@ -17,6 +24,8 @@ def get_totp_token(secret):
   return get_hotp_token(secret, int(time.time()) // 30)
 
 def main():
+  if sys.argv[1:2] in (['-h'], ['--help']):
+    print(__doc__.strip()); return
   with open('.secrets.json', 'r') as f: secrets = json.load(f)
 
   for label, key in sorted(secrets.items()):

@@ -1,4 +1,12 @@
 #!/bin/bash
+# list-server-types - Hetzner Cloud server types on sale in nbg1
+#
+# Usage: list-server-types
+#
+# Columns: name, architecture, hourly gross price, cores, memory GB, disk GB,
+# included traffic TB, category, CPU type. Sorted by cores, then price.
+
+case "${1:-}" in -h|--help) sed -n '2,/^[^#]/s/^# \{0,1\}//p' "$0"; exit 0 ;; esac
 
 hcloud server-type list -o json | jq -r '
   .[] as $s

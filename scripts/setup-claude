@@ -1,17 +1,18 @@
 #!/usr/bin/env bash
+# setup-claude - everything Claude Code gets from this repo: the global instructions,
+# skills and the tag's settings.json linked into ~/.claude, and the MCP servers
+# registered through the claude CLI. Kept out of install-dotfiles so that a host without
+# Claude Code (the tablet: Termux cannot run it) gets none of it.
+#
+# Usage: setup-claude [--dry-run] [--prune]
+#
+#   --dry-run  print the commands instead of running them
+#   --prune    also remove skill links left dangling by a skill removed from the repo,
+#              which are otherwise only reported
+
+case "${1:-}" in -h|--help) sed -n '2,/^[^#]/s/^# \{0,1\}//p' "$0"; exit 0 ;; esac
 
 set -eo pipefail
-
-# Everything Claude Code gets from this repo: the global instructions, skills and the
-# tag's settings.json linked into ~/.claude, and the MCP servers registered through the
-# claude CLI. Kept out of
-# install-dotfiles so that a host without Claude Code (the tablet: Termux cannot run it)
-# gets none of it.
-#
-#   setup-claude [--dry-run] [--prune]
-#
-# Skill links left dangling by a skill removed from the repo are only reported, unless
-# --prune is given.
 
 RUN=
 PRUNE=
@@ -19,7 +20,7 @@ for arg in "$@"; do
   case "$arg" in
     --dry-run) RUN=echo ;;
     --prune) PRUNE=yes ;;
-    *) echo "usage: setup-claude [--dry-run] [--prune]" >&2; exit 2 ;;
+    *) echo "usage: setup-claude [--dry-run] [--prune] (--help for more)" >&2; exit 2 ;;
   esac
 done
 

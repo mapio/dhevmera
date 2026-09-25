@@ -1,9 +1,6 @@
 #!/usr/bin/env bash
-
-set -eo pipefail
-
-# Installs what this host carries by tag: its systemd --user units, its ssh key pairs, and
-# its ~/.ssh/authorized_keys.
+# install-host - install what this host carries by tag: its systemd --user units, its
+# ssh key pairs, and its ~/.ssh/authorized_keys.
 #
 # Unlike the tool configs install-dotfiles deploys, which are wanted on every host this
 # repo is cloned onto, these belong only to some hosts - backup-cloud's ExecStart and
@@ -14,8 +11,15 @@ set -eo pipefail
 # ephemeral enough that their names are not worth encoding. A host declares which tags it
 # carries, and may carry several; this script installs the union.
 #
-#   install-host [--dry-run] [--prune] [--adopt] [--activate] [tag...]
-#   install-host --confirm
+# Usage: install-host [--dry-run] [--prune] [--adopt] [--activate] [tag...]
+#        install-host --confirm
+#
+#   --dry-run   print the commands instead of running them
+#   --prune     also remove key links no tag claims (unit links are always pruned)
+#   --adopt     replace an authorized_keys this script did not generate, after the diff
+#   --activate  enable, start and restart units until systemd matches the repo
+#   --confirm   keep a pending authorized_keys change; run it over a new ssh connection
+#               from another host
 #
 # Tags come from the arguments, or - with none - from ~/.dhevmera-tags, one per line,
 # blank lines and # comments ignored, each one of KNOWN_TAGS in install-common.sh. That
@@ -26,6 +30,10 @@ set -eo pipefail
 # generated, and a change to it reverts itself unless confirmed: see that section.
 # Units are always reloaded, and what systemd runs is checked against the repo; changing
 # running state - enable, start, restart - needs --activate.
+
+case "${1:-}" in -h|--help) sed -n '2,/^[^#]/s/^# \{0,1\}//p' "$0"; exit 0 ;; esac
+
+set -eo pipefail
 
 RUN=
 PRUNE=
@@ -40,7 +48,7 @@ for arg in "$@"; do
     --adopt) ADOPT=yes ;;
     --confirm) CONFIRM=yes ;;
     --activate) ACTIVATE=yes ;;
-    -*) echo "usage: install-host [--dry-run] [--prune] [--adopt] [--activate] [tag...] | --confirm" >&2; exit 2 ;;
+    -*) echo "usage: install-host [--dry-run] [--prune] [--adopt] [--activate] [tag...] | --confirm (--help for more)" >&2; exit 2 ;;
     *) ARGS+=("$arg") ;;
   esac
 done
