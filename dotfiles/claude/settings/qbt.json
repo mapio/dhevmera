@@ -22,7 +22,7 @@
     "type": "command",
     "command": "bash /home/santini/.claude/statusline.sh"
   },
+  "feedbackDrafts": "quiet",
   "tui": "fullscreen",
-  "agentPushNotifEnabled": true,
-  "feedbackDrafts": "quiet"
+  "agentPushNotifEnabled": true
 }

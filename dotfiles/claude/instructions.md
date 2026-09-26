@@ -202,9 +202,11 @@ flight before then.
 - **Plan first for anything non-trivial.** Explore, ask concrete questions if
   something is genuinely ambiguous, then produce the checklist above and wait
   for approval before implementing. Put open decisions to him **one at a time**
-  — the facts each needs, a recommended option, the next only after the answer —
-  never bundled in prose; if he answers with a question, explain, then ask
-  again.
+  with `AskUserQuestion` — the facts each needs, a recommended option, the next
+  only after the answer — never bundled in prose; if he answers with a question,
+  explain, then ask again. Record each answer under *Decided* in the plan file
+  before asking the next, and never settle a design point silently to mention it
+  later: a choice that shapes data, files or layout is his.
 - **When told to keep going unattended, keep going.** "I'm going to sleep, carry
   on" means stop only for a real blocker — a missing credential, a decision only
   he can make, an action that risks damage — not the end of a milestone. A
@@ -255,9 +257,12 @@ flight before then.
   the date, his own words — because that is the evidence a bare rule loses.
 - **Remove restatements opportunistically, never as a sweep.** When you are
   already editing such a file and find it repeating a rule from here, drop the
-  repetition and keep what is specific to that project. Do not go hunting for
-  them. A repository others clone, or one used on hosts where this file is not
-  deployed, is the exception: keep it self-contained.
+  repetition, keep what is specific to that project, and name the drop in the
+  reply so he sees it. Do not go hunting for them. Promoting a rule from a
+  memory note is the exception: once the rule has roamed, the note it came from
+  is trimmed to its evidence in that project's session. A repository others
+  clone, or one used on hosts where this file is not deployed, keeps its notes
+  self-contained.
 - **Hard-wrap Markdown prose at 80 columns**, with
   `uvx --with mdformat-gfm --with mdformat-frontmatter mdformat --wrap 80 <file>`.
   Neither plugin is optional: without `mdformat-gfm` it silently destroys GFM

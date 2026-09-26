@@ -44,7 +44,18 @@ the plan as work in progress. Never commit or push on your own.
 
 Stop, or confirm finished, everything **this session** started:
 
-- background Bash shells and Monitors;
+- background Bash shells and Monitors. Do not answer this from memory of the
+  completion notifications: a shell that never finishes never sends one. List
+  what is still alive under this claude process, then stop each by the task
+  id the listing prints (`TaskStop`), and list again until it prints nothing:
+
+  ```bash
+  for p in $(pgrep -P $PPID); do [ $p = $$ ] || readlink /proc/$p/fd/1; done | grep -o '[^/]*\.output$'
+  ```
+
+  The Bash tool's parent is the claude process and every shell's stdout is its
+  `tasks/<id>.output` file, so with this shell skipped and the MCP servers
+  filtered out by the grep, every line is one of this session's tasks;
 - subagents and workflows still running (`TaskStop`);
 - cron jobs (`CronList`, `CronDelete`) and a `/loop` wakeup (`ScheduleWakeup`
   with `stop: true`);

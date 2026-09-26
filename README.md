@@ -140,9 +140,14 @@ a directory cannot know what else there is still wanted.
 `~/.claude/settings.json` is linked whole from
 `dotfiles/claude/settings/<tag>.json`, with no merging, so a host may carry at
 most one tag that has one; a plain file that differs from it is left alone.
-Claude Code writes into that file itself (`/effort`, `/model`), so its changes
-show up here as a dirty tree: review them, then commit or revert. Nothing in it
-may name client material, since this repo is public.
+Claude Code writes into that file itself, so its changes show up here as a dirty
+tree: review them, then commit or revert. It rewrites the whole file in its own
+key order even when it saves nothing, so the tag files are kept in that order
+(`feedbackDrafts` before `tui`) and a bare rewrite is a byte-identical no-op.
+`/model` and `/effort` save the choice there as the default; to switch for one
+session only, press `s` in the picker or the slider rather than `Enter`, since a
+typed `/model <name>` always saves, and revert the tag file if it did. Nothing
+in it may name client material, since this repo is public.
 
 ## Tags tell one host from another
 
